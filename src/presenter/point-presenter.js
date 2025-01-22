@@ -1,6 +1,8 @@
 import FormEditView from '../view/form-edit-view';
 import PointView from '../view/point-view';
 import {render, replace} from '../framework/render.js';
+import {UserAction} from '../constants/user-action.js';
+import {UpdateType} from '../constants/update-type.js';
 
 
 export default class PointPresenter {
@@ -13,7 +15,7 @@ export default class PointPresenter {
   #pointComponent = null;
   #formEditComponent = null;
   #currentEditId = {editID: undefined};
-  #patchCurrentStateOfPoints;
+  #userActionsHandler;
 
   replacePointToEditForm = () => {
     replace(this.#formEditComponent, this.#pointComponent);
@@ -45,17 +47,27 @@ export default class PointPresenter {
       },
       onFavoriteButtonClick: (pointData) => {
         pointData.isFavorite = !pointData.isFavorite;
-        this.#patchCurrentStateOfPoints(pointData);
+        this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, pointData);
       },
     }
     );
 
     this.#formEditComponent = new FormEditView({
       point: this.#point,
-      onFormSubmit: () => {
+      onFormSubmit: (state) => {
+        this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, state);
         this.replaceEditFormToPoint();
         document.removeEventListener('keydown', this.escKeyDownHandler);
-      }
+      },
+      onExit: () => {
+        this.replaceEditFormToPoint();
+        document.removeEventListener('keydown', this.escKeyDownHandler);
+      },
+      onDelete: (state) => {
+        this.#userActionsHandler(UserAction.DELETE, UpdateType.MINOR, state);
+        this.replaceEditFormToPoint();
+        document.removeEventListener('keydown', this.escKeyDownHandler);
+      },
     });
 
 
@@ -73,11 +85,11 @@ export default class PointPresenter {
     this.#prevFormEditComponent = this.#formEditComponent;
   };
 
-  constructor (container, currentEditId, currentEditIdController, patchCurrentStateOfPoints) {
+  constructor (container, currentEditId, currentEditIdController, userActionsHandler) {
     this.#container = container;
     this.#currentEditId = currentEditId;
     this.#currentEditIdController = currentEditIdController;
-    this.#patchCurrentStateOfPoints = patchCurrentStateOfPoints;
+    this.#userActionsHandler = userActionsHandler;
   }
 
 }

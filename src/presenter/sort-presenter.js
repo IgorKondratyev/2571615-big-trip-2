@@ -1,6 +1,8 @@
 import SortView from '../view/sort-view';
 import {sortOptions} from '../constants/sort-options';
 import {render, replace} from '../framework/render.js';
+import {UserAction} from '../constants/user-action.js';
+import {UpdateType} from '../constants/update-type.js';
 
 export default class SortPresenter {
 
@@ -8,8 +10,9 @@ export default class SortPresenter {
   #sortComponent = null;
   #prevSortComponent = null;
   #sortOptions = sortOptions;
-  #patchSortedStateCallback;
+  #userActionsHandler;
   #currentSort;
+  currentSortCallback = [];
 
   init() {
     this.renderSort();
@@ -39,8 +42,7 @@ export default class SortPresenter {
 
       this.updateSortOptions(sortKey);
 
-      this.renderSort();
-      this.#patchSortedStateCallback((state) => state.toSorted(sortFunction));
+      this.currentSortCallback.push((state) => state.toSorted(sortFunction));
     };
   }
 
@@ -61,14 +63,15 @@ export default class SortPresenter {
       const currentFilterValue = currentFilter.value;
       if(currentFilterValue !== this.#currentSort) {
         this.sortActions[currentFilterValue]();
+        this.#userActionsHandler(UserAction.SORT, UpdateType.MINOR, null);
       }
     }
 
   };
 
-  constructor (container, patchSortedStateCallback) {
+  constructor (container, userActionsHandler) {
     this.#container = container;
-    this.#patchSortedStateCallback = patchSortedStateCallback;
+    this.#userActionsHandler = userActionsHandler;
   }
 
 }

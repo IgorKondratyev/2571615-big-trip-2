@@ -11,19 +11,12 @@ export default class PointsListPresenter {
   #emptyListComponent = null;
   #emptyPointsListContainer = document.querySelector('.trip-events');
   #points;
-  #patchCurrentStateOfPoints;
-  #currentEditId = {editID: undefined};
+  #userActionsHandler;
+  #currentEditId;
+  #currentEditIdController;
   #filteredState = null;
 
   pointPresenters = [];
-
-  #currentEditIdController = (id) => {
-    const currentID = this.#currentEditId.editID;
-    if(currentID) {
-      this.pointPresenters.at(-1)[currentID].replaceEditFormToPoint(); //закрываем текущую форму ред.
-    }
-    this.#currentEditId.editID = id;
-  };
 
   init(points) {
     this.#points = points;
@@ -33,7 +26,6 @@ export default class PointsListPresenter {
   destroy(component){
     if(component) {
       remove(component);
-      component = null;
     }
   }
 
@@ -41,7 +33,7 @@ export default class PointsListPresenter {
 
     if (!points || points.length === 0) {
       this.destroy(this.#pointsListComponent);
-      this.destroy(this.#prevListComponent);
+      this.#prevListComponent = null;
       this.destroy(this.#emptyListComponent);
       this.#emptyListComponent = new EmptyPointsListView(this.#filteredState.currentFilterMessage);
       render(this.#emptyListComponent, this.#emptyPointsListContainer);
@@ -49,12 +41,13 @@ export default class PointsListPresenter {
     }
 
     this.destroy(this.#emptyListComponent);
+    this.#emptyListComponent = null;
 
     this.#pointsListComponent = new PointsListView();
 
     const modifiedPointPresenters = {};
     points.forEach((point) => {
-      modifiedPointPresenters[point.id] = new PointPresenter(this.#pointsListComponent, this.#currentEditId, this.#currentEditIdController, this.#patchCurrentStateOfPoints);
+      modifiedPointPresenters[point.id] = new PointPresenter(this.#pointsListComponent, this.#currentEditId, this.#currentEditIdController, this.#userActionsHandler);
       modifiedPointPresenters[point.id].renderPoint(point);
     });
     this.pointPresenters.push(modifiedPointPresenters);
@@ -69,10 +62,12 @@ export default class PointsListPresenter {
   };
 
 
-  constructor (container, patchCurrentStateOfPoints, filteredState) {
+  constructor (container, userActionsHandler, filteredState, currentEditId, currentEditIdController) {
     this.#container = container;
-    this.#patchCurrentStateOfPoints = patchCurrentStateOfPoints;
+    this.#userActionsHandler = userActionsHandler;
     this.#filteredState = filteredState;
+    this.#currentEditId = currentEditId;
+    this.#currentEditIdController = currentEditIdController;
   }
 
 }

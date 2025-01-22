@@ -3,7 +3,7 @@ const RenderPosition = {
   AFTERBEGIN: 'afterbegin',
   BEFOREEND: 'beforeend',
   AFTEREND: 'afterend',
-};//
+};
 
 function createElement(template) {
   const newElement = document.createElement('div');

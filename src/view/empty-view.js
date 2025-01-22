@@ -6,7 +6,7 @@ function createEmptyPointsListTemplate(message) {
 
 export default class EmptyPointsListView extends AbstractView {
 
-  #message = undefined;
+  #message = '';
 
   get template() {
     return createEmptyPointsListTemplate(this.#message);

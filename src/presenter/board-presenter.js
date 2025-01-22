@@ -1,6 +1,8 @@
 import PointsListPresenter from './points-list-presenter.js';
 import FilterPresenter from './filter-presenter.js';
 import SortPresenter from './sort-presenter.js';
+import {UserAction} from '../constants/user-action.js';
+import {UpdateType} from '../constants/update-type.js';
 
 export default class BoardPresenter {
 
@@ -9,77 +11,106 @@ export default class BoardPresenter {
   #pointsListPresenter;
   #pointPresenters;
 
-  #mainState = {
-    initialStateOfPoints: null,
-    currentStateOfPoints: [],
-    subscribers: [],
-    subscribeCallback(cb){
-      this.subscribers.push(cb);
+  currentEditId = {editID: undefined};
+  currentEditIdController = (id) => {
+    const currentID = this.currentEditId.editID;
+    if(currentID) {
+      this.#pointPresenters.at(-1)[currentID].replaceEditFormToPoint(); //закрываем текущую форму ред.
+    }
+    this.currentEditId.editID = id;
+  };
+
+  #mainState;
+  #filteredState;
+  #sortedState;
+
+  currentFilterCallback;
+  currentFilterMessage;
+
+  currentSortCallback;
+
+  userActionsHandler = (action, type, payload) => {
+    switch (action) {
+      case UserAction.POINT_PATCH:
+        this.patchCurrentStateOfPoints(type, payload);
+        break;
+      case UserAction.FILTER:
+        this.patchFilteredState(type, payload);
+        break;
+      case UserAction.SORT:
+        this.patchSortedState(type, payload);
+        break;
+      case UserAction.DELETE:
+        this.deletePoint(type, payload);
+        break;
     }
   };
 
-  #filteredState = {
-    filteredStateOfPoints: [],
-    currentFilterMessage: undefined,
-    subscribers: [],
-    subscribeCallback(cb){
-      this.subscribers.push(cb);
+  modelEventHandler = (type, payload) => {
+    switch (type) {
+      case UpdateType.PATCH:
+        this.#pointPresenters.at(-1)[payload.id].renderPoint(payload);
+        break;
+      case UpdateType.MINOR:
+        this.#sortPresenter.renderSort();
+        this.#pointsListPresenter.renderPointsList(this.#sortedState.sortedStateOfPoints.at(-1));
+        break;
+      case UpdateType.MAJOR:
+        this.#sortPresenter.renderSort();
+        this.#filterPresenter.renderFilters();
+        this.#pointsListPresenter.renderPointsList(this.#sortedState.sortedStateOfPoints.at(-1));
     }
   };
 
-  #sortedState = {
-    sortedStateOfPoints: [],
-    subscribers: [],
-    subscribeCallback(cb){
-      this.subscribers.push(cb);
-    }
+
+  patchCurrentStateOfPoints = (type, payload) => {
+    this.#mainState.patchCurrentStateOfPoints(type, payload);
   };
 
-  patchCurrentStateOfPoints = (point) => {
-    const newCurrentStateOfPoints = this.#mainState.currentStateOfPoints.map((item)=> item.id === point.id ? point : item);
-    this.#mainState.currentStateOfPoints.push(newCurrentStateOfPoints);
-    this.#mainState.subscribers.forEach((subscriber) => subscriber(point));
+  patchFilteredState = (type, payload) => {
+    const filterCallback = this.currentFilterCallback.at(-1);
+    const filterMsg = this.currentFilterMessage.at(-1);
+    this.#filteredState.patchFilteredState(filterCallback, filterMsg, type, payload);
   };
 
-  currentStateOfPointsSubscriber = (point) => this.#pointPresenters.at(-1)[point.id].renderPoint(point);
-
-  patchFilteredState = (cb, filter) => {
-    const newFilteredState = cb([...this.#mainState.currentStateOfPoints]);
-    this.#filteredState.filteredStateOfPoints.push(newFilteredState);
-    this.#filteredState.currentFilterMessage = filter;
-    this.#filteredState.subscribers.forEach((subscriber) => subscriber(newFilteredState));
+  patchSortedState = (type, payload) => {
+    const sortCallback = this.currentSortCallback.at(-1);
+    this.#sortedState.patchSortedState(sortCallback, type, payload);
   };
 
-  patchSortedState = (cb) => {
-    const lastState = this.#filteredState.filteredStateOfPoints.at(-1);
-    const newSortedState = cb([...lastState]);
-    if(newSortedState.length > 0) {
-      this.#sortedState.sortedStateOfPoints.push(newSortedState);
-      this.#sortedState.subscribers.forEach((subscriber) => subscriber(newSortedState));
-    }
+  deletePoint = (type, payload) => {
+    this.#mainState.deletePoint(type, payload);
   };
 
   constructor(container, model, filterContainer) {
 
     this.container = container;
     this.model = model;
-    this.#mainState.initialStateOfPoints = this.model.getResolvedPoints();
-    this.#mainState.currentStateOfPoints = this.#mainState.initialStateOfPoints;
-    this.#filteredState.filteredStateOfPoints.push(this.#mainState.initialStateOfPoints);
+    this.#mainState = this.model.mainState;
+    this.#filteredState = this.model.filteredState;
+    this.#sortedState = this.model.sortedState;
 
-    this.#pointsListPresenter = new PointsListPresenter(this.container, this.patchCurrentStateOfPoints, this.#filteredState);
+    this.#pointsListPresenter = new PointsListPresenter(this.container, this.userActionsHandler, this.#filteredState, this.currentEditId, this.currentEditIdController);
     this.#pointPresenters = this.#pointsListPresenter.pointPresenters;
 
     this.filtersContainer = filterContainer;
-    this.#filterPresenter = new FilterPresenter(this.filtersContainer, this.patchFilteredState);
+    this.#filterPresenter = new FilterPresenter(this.filtersContainer, this.userActionsHandler);
+    this.currentFilterCallback = this.#filterPresenter.currentFilterCallback;
+    this.currentFilterMessage = this.#filterPresenter.currentFilterMessage;
 
     this.sortContainer = document.querySelector('.trip-events');
-    this.#sortPresenter = new SortPresenter(this.sortContainer, this.patchSortedState);
+    this.#sortPresenter = new SortPresenter(this.sortContainer, this.userActionsHandler);
+    this.currentSortCallback = this.#sortPresenter.currentSortCallback;
 
-    this.#mainState.subscribeCallback(this.currentStateOfPointsSubscriber);
-    this.#filteredState.subscribeCallback(this.#pointsListPresenter.renderPointsList);
-    this.#filteredState.subscribeCallback(this.#sortPresenter.sortActions['sort-day']);
-    this.#sortedState.subscribeCallback(this.#pointsListPresenter.renderPointsList);
+    this.#mainState.addObserver(this.modelEventHandler);
+    this.#mainState.addObserver(this.patchFilteredState);
+    this.#filteredState.addObserver(this.modelEventHandler);
+    const defaultSortAction = (type, payload) => {
+      this.#sortPresenter.sortActions['sort-day']();
+      this.patchSortedState(type, payload);
+    };
+    this.#filteredState.addObserver(defaultSortAction);
+    this.#sortedState.addObserver(this.modelEventHandler);
 
   }
 

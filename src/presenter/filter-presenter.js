@@ -5,12 +5,14 @@ import {filters} from '../constants/filters.js';
 export default class FilterPresenter {
 
   #container;
-  #patchStateCallback;
+  #userActionsHandler;
   #filtersComponent = null;
   #prevFiltersComponent = null;
   #filters = filters;
   #currentFilter;
-  #currentFilterMessage = undefined;
+
+  currentFilterMessage = [];
+  currentFilterCallback = [(state) => state];
 
   renderFilters() {
 
@@ -30,36 +32,30 @@ export default class FilterPresenter {
     });
   };
 
-  #updateState = (callback) => {
-    this.#patchStateCallback(callback, this.#currentFilterMessage);
-    this.renderFilters();
-  };
-
   #filterActions = {
     everything: () => {
       this.#currentFilter = 'everything';
-      this.#currentFilterMessage = 'Click New Event to create your first point';
+      this.currentFilterMessage.push('Click New Event to create your first point');
       this.#updateFilters('everything');
-      this.#updateState((state) => state);
+      this.currentFilterCallback.push((state) => state);
     },
     future: () => {
       this.#currentFilter = 'future';
-      this.#currentFilterMessage = 'There are no future events now';
+      this.currentFilterMessage.push('There are no future events now');
       this.#updateFilters('future');
-      this.#updateState((state) => state.filter((point) => new Date(point.dateFrom) > new Date()));
+      this.currentFilterCallback.push((state) => state.filter((point) => new Date(point.dateFrom) > new Date()));
     },
     present: () => {
       this.#currentFilter = 'present';
-      this.#currentFilterMessage = 'There are no present events now';
+      this.currentFilterMessage.push('There are no present events now');
       this.#updateFilters('present');
-      this.#updateState((state) => state.filter((point) => (new Date(point.dateFrom) < new Date()) && (new Date(point.dateTo) > new Date())
-      ));
+      this.currentFilterCallback.push((state) => state.filter((point) => (new Date(point.dateFrom) < new Date()) && (new Date(point.dateTo) > new Date())));
     },
     past: () => {
       this.#currentFilter = 'past';
-      this.#currentFilterMessage = 'There are no past events now';
+      this.currentFilterMessage.push('There are no past events now');
       this.#updateFilters('past');
-      this.#updateState((state) => state.filter((point) => new Date(point.dateTo) < new Date()));
+      this.currentFilterCallback.push((state) => state.filter((point) => new Date(point.dateTo) < new Date()));
     }
   };
 
@@ -67,19 +63,20 @@ export default class FilterPresenter {
 
     const sortItem = evt.target.closest('.trip-filters__filter');
     if (sortItem) {
-      const currentFilter = sortItem.querySelector('.trip-filters__filter-input');
+      const currentFilter = sortItem.querySelector('.trip-filters__filter-input').value;
       if(currentFilter !== this.#currentFilter) {
-        const action = this.#filterActions[currentFilter.value];
+        const action = this.#filterActions[currentFilter];
         action();
+        this.#userActionsHandler('FILTER', 'MAJOR', null);
       }
 
     }
 
   };
 
-  constructor (container, patchFilterStateCallback) {
+  constructor (container, userActionsHandler) {
     this.#container = container;
-    this.#patchStateCallback = patchFilterStateCallback;
+    this.#userActionsHandler = userActionsHandler;
   }
 
   init() {
