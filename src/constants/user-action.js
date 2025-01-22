@@ -3,6 +3,7 @@ const UserAction = {
   FILTER: 'FILTER',
   SORT: 'SORT',
   DELETE: 'DELETE',
+  ADD: 'ADD',
 };
 
 export {UserAction};

@@ -3,7 +3,7 @@ import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
-function createFormEditTemplate(point) {
+function createAddFormTemplate(point) {
 
   const offersMarkup = point.pointOffers.map((offer) => `
     <div class="event__offer-selector">
@@ -21,7 +21,7 @@ function createFormEditTemplate(point) {
                       ${point.destination.pictures.map((picture)=>`<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
                        </div>` : '';
 
-  const pointDestination = point.destination.description ? `<section class="event__section event__section--destination">
+  const pointDestination = point.destination?.description ? `<section class="event__section event__section--destination">
                   <h3 class="event__section-title event__section-title--destination">Destination</h3>
                   <p class="event__destination-description">${point.destination.description}</p>
                   ${pointDestinationPhotos}
@@ -76,7 +76,7 @@ function createFormEditTemplate(point) {
                   <input class="event__input event__input--price" id="event-price-${point.id}" type="text" name="event-price" value="${(point.basePrice / 100).toFixed(2)}">
                 </div>
                 <button class="event__save-btn btn btn--blue" type="submit">Save</button>
-                <button class="event__reset-btn" type="reset">Delete</button>
+                <button class="event__reset-btn" type="reset">Cancel</button>
                 <button class="event__rollup-btn" type="button">
                   <span class="visually-hidden">Open event</span>
                 </button>
@@ -93,9 +93,9 @@ function createFormEditTemplate(point) {
           </li>`;
 }
 
-export default class FormEditView extends AbstractStatefulView {
+export default class AddNewPointView extends AbstractStatefulView {
 
-  #handleFormSubmit = null;
+  #handleFormSave = null;
   #handleFormExit = null;
   #handleFormDelete = null;
   #startdatepicker = null;
@@ -121,7 +121,7 @@ export default class FormEditView extends AbstractStatefulView {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
         'time_24hr': true,
-        defaultDate: this._state.dateFrom,
+        defaultDate: '',
         onChange: this.#startDateChangeHandler,
       },
     );
@@ -141,8 +141,8 @@ export default class FormEditView extends AbstractStatefulView {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
         'time_24hr': true,
-        defaultDate: this._state.dateTo,
-        minDate: this.#minDate !== undefined ? this.#minDate : this.#initialState.dateFrom,
+        defaultDate: null,
+        minDate: this.#minDate,
         onChange: this.#endDateChangeHandler,
       },
     );
@@ -183,14 +183,14 @@ export default class FormEditView extends AbstractStatefulView {
 
   _restoreHandlers() {
 
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#formExitHandler);
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formCancelHandler);
 
     this.element.querySelector('.event__save-btn.btn.btn--blue')
-      .addEventListener('click', this.#formSubmitHandler);
+      .addEventListener('click', this.#formSaveHandler);
 
-    this.element.querySelector('.event__reset-btn')
-      .addEventListener('click', this. #formDeleteHandler);
+    // this.element.querySelector('.event__reset-btn')
+    //   .addEventListener('click', this. #formDeleteHandler);
 
     this.element.querySelector('.event__type-list')
       .addEventListener('click', this.#eventOptionsHandler);
@@ -207,36 +207,31 @@ export default class FormEditView extends AbstractStatefulView {
 
   }
 
-  constructor({point, onFormSubmit, onExit, onDelete}) {
+  constructor({point, onFormSave, onFormCancel}) {
     super();
-    this.#initialState = point;
-    this._setState(structuredClone(point));
-    this.#handleFormSubmit = onFormSubmit;
-    this.#handleFormExit = onExit;
-    this.#handleFormDelete = onDelete;
+    this.#initialState = structuredClone(point);
+    this._setState(this.#initialState);
+    this._setState({id: Math.random()});
+    this.#handleFormSave = onFormSave;
+    this.#handleFormExit = onFormCancel;
     this._restoreHandlers();
   }
 
   get template() {
-    return createFormEditTemplate(this._state);
+    return createAddFormTemplate(this._state);
   }
 
-  exitWithReset = () => {
-    this.updateElement(this.#initialState);
+  #formCancelHandler = (evt) => {
+    evt.preventDefault();
     this.#handleFormExit();
   };
 
-  #formExitHandler = (evt) => {
-    evt.preventDefault();
-    this.exitWithReset();
-  };
+  // #formDeleteHandler = (evt) => {
+  //   evt.preventDefault();
+  //   this.#handleFormDelete(this._state);
+  // };
 
-  #formDeleteHandler = (evt) => {
-    evt.preventDefault();
-    this.#handleFormDelete(this._state);
-  };
-
-  #formSubmitHandler = (evt) => {
+  #formSaveHandler = (evt) => {
     evt.preventDefault();
 
     const { type, offersMap } = this._state;
@@ -251,9 +246,10 @@ export default class FormEditView extends AbstractStatefulView {
       }
     });
 
-    this._setState({ pointOffers: offers });
-    this.#handleFormSubmit(this._state);
+    //this._setState({ pointOffers: offers });
+    this.#handleFormSave(this._state);
   };
+
 }
 
 
