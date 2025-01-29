@@ -1,21 +1,48 @@
-import {destinationsMock} from '../mocks/destinations-mock';
-import {offersMock} from '../mocks/offers-mock';
-import {pointsMock} from '../mocks/points-mock';
 import Observable from '../framework/observable.js';
+import {UpdateType} from '../constants/update-type.js';
+import {adaptToClient} from '../utils/adapt-to-client.js';
+import TasksApiService from '../tasks-api-service.js';
 
 class MainState extends Observable {
   initialStateOfPoints = null;
   currentStateOfPoints = [];
-  patchCurrentStateOfPoints = (type, payload) => {
-    const newCurrentStateOfPoints = this.currentStateOfPoints.at(-1).map((item)=> item.id === payload.id ? payload : item);
-    this.currentStateOfPoints.push(newCurrentStateOfPoints);
-    this._notify(type, payload);
+  #tasksApiService = new TasksApiService();
+
+  patchCurrentStateOfPoints = async (type, payload) => {
+    try {
+      const response = await this.#tasksApiService.updatePoint(payload);
+      const updatedTask = adaptToClient(response);
+      const newCurrentStateOfPoints = this.currentStateOfPoints.at(-1).map((item)=> item.id === updatedTask.id ? updatedTask : item);
+      this.currentStateOfPoints.push(newCurrentStateOfPoints);
+      this._notify(type, updatedTask);
+    } catch(err) {
+      throw new Error('Can\'t update point');
+    }
   };
 
-  deletePoint = (type, payload) => {
-    const newCurrentStateOfPoints = (this.currentStateOfPoints.at(-1).map((item)=> item.id === payload.id ? null : item)).filter(Boolean);
-    this.currentStateOfPoints.push(newCurrentStateOfPoints);
-    this._notify(type, payload);
+  deletePoint = async (type, payload) => {
+    try {
+      await this.#tasksApiService.deleteTask(payload);
+      const newCurrentStateOfPoints = (this.currentStateOfPoints.at(-1).map((item)=> item.id === payload.id ? null : item)).filter(Boolean);
+      this.currentStateOfPoints.push(newCurrentStateOfPoints);
+      this._notify(type, payload);
+    } catch(err) {
+      throw new Error('Can\'t delete task');
+    }
+  };
+
+  addPoint = async (type, payload) => {
+
+    try {
+      const response = await this.#tasksApiService.addTask(payload);
+      const newTask = adaptToClient(response); console.log(newTask)
+      const newCurrentStateOfPoints = [...this.currentStateOfPoints.at(-1)];
+      newCurrentStateOfPoints.unshift(newTask);
+      this.currentStateOfPoints.push(newCurrentStateOfPoints);
+      this._notify(type, newTask);
+    } catch(err) {
+      throw new Error('Can\'t add task');
+    }
   };
 }
 class FilteredState extends Observable {
@@ -45,9 +72,11 @@ class SortedState extends Observable {
 
 export default class Model {
 
-  rawPoints = pointsMock;
-  rawDestinations = destinationsMock;
-  rawOffers = offersMock;
+  #tasksApiService = null;
+
+  rawPoints = [];
+  rawDestinations = [];
+  rawOffers = [];
 
   resolvedPoints = [];
 
@@ -63,18 +92,8 @@ export default class Model {
 
   sortedState = new SortedState;
 
-  constructor() {
-    this.createDestinationsMap();
-    this.createOffersMap();
-    this.createResolvedPoints();
-    this.emptyPoint = {...this.getResolvedPoints()[0], ...{basePrice:0, dateFrom: '', dateTo:'', destination: {}, offers: [], pointOffers: [], type: 'flight', }};
-    this.mainState.initialStateOfPoints = this.getResolvedPoints();
-    this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
-    this.filteredState.currentStateOfPoints = this.mainState.currentStateOfPoints;
-    this.filteredState.filteredStateOfPoints.push(this.mainState.initialStateOfPoints);
-    this.sortedState.filteredStateOfPoints = this.filteredState.filteredStateOfPoints;
-    this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
-    this.typesOfPoints = Object.keys(this.offersMap);
+  constructor({tasksApiService}) {
+    this.#tasksApiService = tasksApiService;
   }
 
   createDestinationsMap() {
@@ -136,10 +155,30 @@ export default class Model {
     return this.resolvedPoints;
   }
 
-  init() {
-    if (this.resolvedPoints.length > 0) {
-      //ToDo;
-    }
-  }
+  init = async () => {
+    //try {
+    const tasks = await this.#tasksApiService.points;
+    this.rawPoints = tasks.map(adaptToClient);
+    this.rawDestinations = await this.#tasksApiService.destinations;
+    this.rawOffers = await this.#tasksApiService.offers;
+    this.createDestinationsMap();
+    this.createOffersMap();
+    this.createResolvedPoints();
+    this.mainState.initialStateOfPoints = this.getResolvedPoints();
+    this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, dateTo: null, dateFrom: null, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', }};
+    delete this.emptyPoint.id;
+    this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
+    this.filteredState.currentStateOfPoints = this.mainState.currentStateOfPoints;
+    this.filteredState.filteredStateOfPoints.push(this.mainState.initialStateOfPoints);
+    this.sortedState.filteredStateOfPoints = this.filteredState.filteredStateOfPoints;
+    this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
+    this.sortedState._notify(UpdateType.INIT);
+    this.typesOfPoints = Object.keys(this.offersMap);
+    // } catch(err) {
+    //   this.rawPoints = [];
+    //   this.rawDestinations = [];
+    //   this.rawOffers = [];
+    // }
+  };
 }
 
