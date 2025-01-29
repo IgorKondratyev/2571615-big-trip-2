@@ -54,7 +54,7 @@ export default class FilterPresenter {
 
   updateFilters = (selectedValue = 'everything') => {
     this.#filters.forEach((filter) => {
-      filter['checked'] = (filter.value === selectedValue); console.log( selectedValue)
+      filter['checked'] = (filter.value === selectedValue);
     });
   };
 

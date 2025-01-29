@@ -1,4 +1,5 @@
 import Observable from '../framework/observable.js';
+import {adaptToClient} from '../utils/adapt-to-client.js';
 
 export default class MainState extends Observable {
   initialStateOfPoints = null;
@@ -36,7 +37,7 @@ export default class MainState extends Observable {
   addPoint = async (type, payload) => {
     try {
       const response = await this.#tasksApiService.addTask(payload);
-      const newTask = {...adaptToClient(response), ...payload}; //console.log(newTask)
+      const newTask = {...adaptToClient(response), ...payload};
       const newCurrentStateOfPoints = [...this.currentStateOfPoints.at(-1)];
       newCurrentStateOfPoints.unshift(newTask);
       this.currentStateOfPoints.push(newCurrentStateOfPoints);
