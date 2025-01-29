@@ -181,6 +181,22 @@ export default class FormEditView extends AbstractStatefulView {
     this._setState({basePrice: he.encode(inputValue)});
   };
 
+  #offerCheckHandler = (evt) => {
+    const id = evt.target.id.replace('event-offer-', '');
+    const isChecked = evt.target.checked;
+    let offers = structuredClone(this._state.offers);
+    const offersState = structuredClone(this._state.pointOffers);
+    offersState.find((offer)=>offer.id === id).isChecked = isChecked;
+    this._setState({pointOffers: offersState});
+    if(isChecked && !offers.includes(id)) {
+      offers.push(id);
+    }
+    if(!isChecked && offers.includes(id)) {
+      offers = offers.filter((input) => input.id !== id);
+    }
+    this._setState({offers});
+  };
+
   _restoreHandlers() {
 
     this.element.querySelector('.event__rollup-btn')
@@ -194,6 +210,11 @@ export default class FormEditView extends AbstractStatefulView {
 
     this.element.querySelector('.event__type-list')
       .addEventListener('click', this.#eventOptionsHandler);
+
+    this.element.querySelectorAll('.event__section.event__section--offers input')
+      .forEach((inputElement) => {
+        inputElement.addEventListener('change', this.#offerCheckHandler);
+      });
 
     const inputDestination = this.element.querySelector('.event__input.event__input--destination');
     inputDestination.addEventListener('focus', this.#destinationsClickOptionsHandler);
@@ -222,7 +243,7 @@ export default class FormEditView extends AbstractStatefulView {
   }
 
   exitWithReset = () => {
-    this.updateElement(this.#initialState); // заменить на _setState???
+    this.updateElement(this.#initialState);
     this.#handleFormExit();
   };
 
@@ -251,21 +272,9 @@ export default class FormEditView extends AbstractStatefulView {
 
 
   #formSubmitHandler = async (evt) => {
+
     evt.preventDefault();
 
-    const { type, offersMap } = this._state;
-    const offers = Object.values(offersMap[type]);
-
-    const offerElements = this.element.querySelectorAll('.event__section.event__section--offers input');
-
-    offerElements.forEach((input) => {
-      const offerById = offers.find((offer) => input.id.includes(offer.id));
-      if (offerById) {
-        offerById.isChecked = input.checked;
-      }
-    });
-
-    this._setState({ pointOffers: offers });
     this.updateElement({isDisabled: true, isSaving: true});
     try {
       await this.#handleFormSubmit(this._state);

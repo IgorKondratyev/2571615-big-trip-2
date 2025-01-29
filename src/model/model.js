@@ -96,7 +96,7 @@ export default class Model {
   }
 
   init = async () => {
-    try {
+    // try {
       const tasks = await this.#pointsApiService.points;
       this.rawPoints = tasks.map(adaptToClient);
       this.rawDestinations = await this.#pointsApiService.destinations;
@@ -115,12 +115,12 @@ export default class Model {
       this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
       this.sortedState._notify(UpdateType.INIT);
       this.typesOfPoints = Object.keys(this.offersMap);
-    } catch(err) {
-      this.rawPoints = [];
-      this.rawDestinations = [];
-      this.rawOffers = [];
-      this.sortedState._notify(UpdateType.LOAD_ERROR);
-    }
+    // } catch(err) {
+    //   this.rawPoints = [];
+    //   this.rawDestinations = [];
+    //   this.rawOffers = [];
+    //   this.sortedState._notify(UpdateType.LOAD_ERROR);
+    // }
   };
 }
 
