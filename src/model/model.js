@@ -5,7 +5,7 @@ import FilteredState from './filtered-state.js';
 import SortedState from './sorted-state.js';
 export default class Model {
 
-  #tasksApiService = null;
+  #pointsApiService = null;
 
   rawPoints = [];
   rawDestinations = [];
@@ -25,11 +25,11 @@ export default class Model {
 
   sortedState = null;
 
-  constructor({tasksApiService}) {
+  constructor({pointsApiService}) {
 
-    this.#tasksApiService = tasksApiService;
+    this.#pointsApiService = pointsApiService;
 
-    this.mainState = new MainState(tasksApiService);
+    this.mainState = new MainState(pointsApiService);
 
     this.filteredState = new FilteredState();
 
@@ -97,10 +97,10 @@ export default class Model {
 
   init = async () => {
     try {
-      const tasks = await this.#tasksApiService.points;
+      const tasks = await this.#pointsApiService.points;
       this.rawPoints = tasks.map(adaptToClient);
-      this.rawDestinations = await this.#tasksApiService.destinations;
-      this.rawOffers = await this.#tasksApiService.offers;
+      this.rawDestinations = await this.#pointsApiService.destinations;
+      this.rawOffers = await this.#pointsApiService.offers;
       this.createDestinationsMap();
       this.createOffersMap();
       this.createResolvedPoints();

@@ -73,7 +73,7 @@ export default class BoardPresenter {
           this.#uiBlocker.unblock();
         } catch(err) {
           this.#uiBlocker.unblock();
-          throw new Error('Can\'t update point');
+          throw new Error('Can\'t filter points');
         }
         break;
       case UserAction.SORT:
@@ -82,7 +82,7 @@ export default class BoardPresenter {
           this.#uiBlocker.unblock();
         } catch(err) {
           this.#uiBlocker.unblock();
-          throw new Error('Can\'t update point');
+          throw new Error('Can\'t sort points');
         }
         break;
       case UserAction.DELETE:
@@ -91,7 +91,7 @@ export default class BoardPresenter {
           this.#uiBlocker.unblock();
         } catch(err) {
           this.#uiBlocker.unblock();
-          throw new Error('Can\'t update point');
+          throw new Error('Can\'t delete point');
         }
         break;
       case UserAction.ADD:
@@ -100,7 +100,7 @@ export default class BoardPresenter {
           this.#uiBlocker.unblock();
         } catch(err) {
           this.#uiBlocker.unblock();
-          throw new Error('Can\'t update point');
+          throw new Error('Can\'t add point');
         }
         break;
     }
@@ -151,7 +151,7 @@ export default class BoardPresenter {
       const filterMsg = this.currentFilterMessage.at(-1);
       await this.#filteredState.patchFilteredState(filterCallback, filterMsg, type, payload);
     } catch(err) {
-      throw new Error('Can\'t update point');
+      throw new Error('Can\'t filter points');
     }
   };
 
@@ -160,7 +160,7 @@ export default class BoardPresenter {
       const sortCallback = this.currentSortCallback.at(-1);
       await this.#sortedState.patchSortedState(sortCallback, type, payload);
     } catch(err) {
-      throw new Error('Can\'t update point');
+      throw new Error('Can\'t sort points');
     }
   };
 
@@ -168,7 +168,7 @@ export default class BoardPresenter {
     try {
       await this.#mainState.deletePoint(type, payload);
     } catch(err) {
-      throw new Error('Can\'t update point');
+      throw new Error('Can\'t delete point');
     }
   };
 
@@ -176,7 +176,7 @@ export default class BoardPresenter {
     try {
       await this.#mainState.addPoint(type, payload);
     } catch(err) {
-      throw new Error('Can\'t update point');
+      throw new Error('Can\'t add point');
     }
   };
 

@@ -2,7 +2,7 @@ import ApiService from './framework/api-service.js';
 import {Method} from './constants/server.js';
 import {adaptToServer} from './utils/adapt-to-server.js';
 
-export default class TasksApiService extends ApiService {
+export default class PointsApiService extends ApiService {
 
   get points() {
     return this._load({url: 'points'})
