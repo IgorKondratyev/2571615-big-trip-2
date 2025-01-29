@@ -90,8 +90,12 @@ export default class PointView extends AbstractView {
     this.#handleEditClick();
   };
 
-  #favoriteBtnClickHandler = (evt) => {
+  #favoriteBtnClickHandler = async (evt) => {
     evt.preventDefault();
-    this.#handleFavoriteButtonClick(this.#point);
+    try {
+      await this.#handleFavoriteButtonClick(this.#point);
+    } catch {
+      this.shake();
+    }
   };
 }
