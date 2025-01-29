@@ -1,9 +1,5 @@
 import LoadingView from '../view/loading-view.js';
-//import PointView from '../view/point-view';
 import {render, remove} from '../framework/render.js';
-// import {UserAction} from '../constants/user-action.js';
-// import {UpdateType} from '../constants/update-type.js';
-
 
 export default class LoadingPresenter {
 

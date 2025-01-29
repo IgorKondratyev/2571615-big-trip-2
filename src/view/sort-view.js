@@ -64,7 +64,6 @@ export default class SortView extends AbstractView {
     this.#handleClick(evt);
   };
 
-
   get template() {
     return createSortTemplate(this.#sortOptions);
   }

@@ -1,75 +1,8 @@
-import Observable from '../framework/observable.js';
 import {UpdateType} from '../constants/update-type.js';
 import {adaptToClient} from '../utils/adapt-to-client.js';
-import TasksApiService from '../tasks-api-service.js';
-
-class MainState extends Observable {
-  initialStateOfPoints = null;
-  currentStateOfPoints = [];
-  #tasksApiService = new TasksApiService();
-
-  patchCurrentStateOfPoints = async (type, payload) => {
-    try {
-      const response = await this.#tasksApiService.updatePoint(payload);
-      const updatedTask = adaptToClient(response);
-      const newCurrentStateOfPoints = this.currentStateOfPoints.at(-1).map((item)=> item.id === updatedTask.id ? updatedTask : item);
-      this.currentStateOfPoints.push(newCurrentStateOfPoints);
-      this._notify(type, updatedTask);
-    } catch(err) {
-      throw new Error('Can\'t update point');
-    }
-  };
-
-  deletePoint = async (type, payload) => {
-    try {
-      await this.#tasksApiService.deleteTask(payload);
-      const newCurrentStateOfPoints = (this.currentStateOfPoints.at(-1).map((item)=> item.id === payload.id ? null : item)).filter(Boolean);
-      this.currentStateOfPoints.push(newCurrentStateOfPoints);
-      this._notify(type, payload);
-    } catch(err) {
-      throw new Error('Can\'t delete task');
-    }
-  };
-
-  addPoint = async (type, payload) => {
-
-    try {
-      const response = await this.#tasksApiService.addTask(payload);
-      const newTask = adaptToClient(response); console.log(newTask)
-      const newCurrentStateOfPoints = [...this.currentStateOfPoints.at(-1)];
-      newCurrentStateOfPoints.unshift(newTask);
-      this.currentStateOfPoints.push(newCurrentStateOfPoints);
-      this._notify(type, newTask);
-    } catch(err) {
-      throw new Error('Can\'t add task');
-    }
-  };
-}
-class FilteredState extends Observable {
-  currentStateOfPoints = [];
-  filteredStateOfPoints = [];
-  currentFilterMessage = '';
-  patchFilteredState = (cb, filterMessage, type, payload) => {
-    const newFilteredState = cb([...this.currentStateOfPoints.at(-1)]);
-    this.filteredStateOfPoints.push(newFilteredState);
-    this.currentFilterMessage = filterMessage;
-    this._notify(type, payload);
-  };
-}
-class SortedState extends Observable {
-  filteredStateOfPoints = [];
-  sortedStateOfPoints = [];
-
-  patchSortedState = (cb, type, payload) => {
-    const lastState = this.filteredStateOfPoints.at(-1);
-    //if(lastState.length > 0) {
-    const newSortedState = cb([...lastState]);
-    this.sortedStateOfPoints.push(newSortedState);
-    this._notify(type, payload);
-    // }
-  };
-}
-
+import MainState from './main-state.js';
+import FilteredState from './filtered-state.js';
+import SortedState from './sorted-state.js';
 export default class Model {
 
   #tasksApiService = null;
@@ -86,14 +19,21 @@ export default class Model {
   offersMap;
   typesOfPoints;
 
-  mainState = new MainState;
+  mainState = null;
 
-  filteredState = new FilteredState;
+  filteredState = null;
 
-  sortedState = new SortedState;
+  sortedState = null;
 
   constructor({tasksApiService}) {
+
     this.#tasksApiService = tasksApiService;
+
+    this.mainState = new MainState(tasksApiService);
+
+    this.filteredState = new FilteredState();
+
+    this.sortedState = new SortedState();
   }
 
   createDestinationsMap() {
@@ -156,29 +96,31 @@ export default class Model {
   }
 
   init = async () => {
-    //try {
-    const tasks = await this.#tasksApiService.points;
-    this.rawPoints = tasks.map(adaptToClient);
-    this.rawDestinations = await this.#tasksApiService.destinations;
-    this.rawOffers = await this.#tasksApiService.offers;
-    this.createDestinationsMap();
-    this.createOffersMap();
-    this.createResolvedPoints();
-    this.mainState.initialStateOfPoints = this.getResolvedPoints();
-    this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, dateTo: null, dateFrom: null, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', }};
-    delete this.emptyPoint.id;
-    this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
-    this.filteredState.currentStateOfPoints = this.mainState.currentStateOfPoints;
-    this.filteredState.filteredStateOfPoints.push(this.mainState.initialStateOfPoints);
-    this.sortedState.filteredStateOfPoints = this.filteredState.filteredStateOfPoints;
-    this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
-    this.sortedState._notify(UpdateType.INIT);
-    this.typesOfPoints = Object.keys(this.offersMap);
-    // } catch(err) {
-    //   this.rawPoints = [];
-    //   this.rawDestinations = [];
-    //   this.rawOffers = [];
-    // }
+    try {
+      const tasks = await this.#tasksApiService.points;
+      this.rawPoints = tasks.map(adaptToClient);
+      this.rawDestinations = await this.#tasksApiService.destinations;
+      this.rawOffers = await this.#tasksApiService.offers;
+      this.createDestinationsMap();
+      this.createOffersMap();
+      this.createResolvedPoints();
+      this.mainState.initialStateOfPoints = this.getResolvedPoints();
+      this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', }};
+      delete this.emptyPoint.id;
+      this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
+      this.mainState.defaultSortedState.push([...this.mainState.initialStateOfPoints].toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
+      this.filteredState.currentStateOfPoints = this.mainState.currentStateOfPoints;
+      this.filteredState.filteredStateOfPoints.push(this.mainState.initialStateOfPoints);
+      this.sortedState.filteredStateOfPoints = this.filteredState.filteredStateOfPoints;
+      this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
+      this.sortedState._notify(UpdateType.INIT);
+      this.typesOfPoints = Object.keys(this.offersMap);
+    } catch(err) {
+      this.rawPoints = [];
+      this.rawDestinations = [];
+      this.rawOffers = [];
+      this.sortedState._notify(UpdateType.LOAD_ERROR);
+    }
   };
 }
 

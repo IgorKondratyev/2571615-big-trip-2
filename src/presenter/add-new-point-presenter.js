@@ -4,19 +4,22 @@ import {UpdateType} from '../constants/update-type.js';
 import AddNewPointView from '../view/add-new-point.js';
 
 
-export default class addNewPointPresenter {
+export default class AddNewPointPresenter {
 
   #baseContainer = null;
   #generatedContainer = null;
   #point = null;
   #formComponent = null;
   #currentEditIdController = null;
-  // #currentEditId = {editID: undefined};
+  #defaultPatchFilteredState;
+  #getDefaultFiltersState;
   #userActionsHandler = null;
   #addButton = document.querySelector('.trip-main__event-add-btn.btn.btn--big.btn--yellow');
 
 
   addButtonInit = () => {
+    this.#addButton.addEventListener('click', ()=>(this.#getDefaultFiltersState)());
+    this.#addButton.addEventListener('click', this.#defaultPatchFilteredState);
     this.#addButton.addEventListener('click', this.renderForm);
   };
 
@@ -58,10 +61,14 @@ export default class addNewPointPresenter {
 
     this.#formComponent = new AddNewPointView({
       point: this.#point,
-      onFormSave: (state) => {
-        this.#userActionsHandler(UserAction.ADD, UpdateType.MINOR, state);
-        this.closeForm();
-        document.removeEventListener('keydown', this.handleEscKeyDown);
+      onFormSave: async (state) => {
+        try {
+          await this.#userActionsHandler(UserAction.ADD, UpdateType.MINOR, state);
+          this.closeForm();
+          document.removeEventListener('keydown', this.handleEscKeyDown);
+        } catch {
+          throw new Error('Can\'t update point');
+        }
       },
       onFormCancel: () => {
         this.closeForm();
@@ -83,11 +90,11 @@ export default class addNewPointPresenter {
 
   };
 
-  constructor (currentEditIdController, userActionsHandler) {
-    //this.#baseContainer = baseContainer;
-    // this.#currentEditId = currentEditId;
+  constructor (currentEditIdController, userActionsHandler, defaultPatchFilteredState, updateFilters) {
     this.#currentEditIdController = currentEditIdController;
     this.#userActionsHandler = userActionsHandler;
+    this.#defaultPatchFilteredState = defaultPatchFilteredState;
+    this.#getDefaultFiltersState = updateFilters;
   }
 
 }

@@ -34,7 +34,7 @@ function createPointTemplate(point) {
             </div>
 
             <p class="event__price">
-                &euro;&nbsp;<span class="event__price-value">${(basePrice / 100).toFixed(2)}</span>
+                &euro;&nbsp;<span class="event__price-value">${(+basePrice).toFixed(2)}</span>
             </p>
 
             <h4 class="visually-hidden">pointOffers:</h4>

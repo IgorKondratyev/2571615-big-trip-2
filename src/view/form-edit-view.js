@@ -7,7 +7,7 @@ function createFormEditTemplate(point) {
 
   const offersMarkup = point.pointOffers.map((offer) => `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer-${offer.title.toLowerCase().replace(/\s+/g, '-')}" ${offer.isChecked ? 'checked' : ''}>
+      <input ${point.isDisabled ? 'disabled' : ''} class="event__offer-checkbox visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer-${offer.title.toLowerCase().replace(/\s+/g, '-')}" ${offer.isChecked ? 'checked' : ''}>
       <label class="event__offer-label" for="event-offer-${offer.id}">
         <span class="event__offer-title">${offer.title}</span>
         &plus;&euro;&nbsp;
@@ -43,13 +43,13 @@ function createFormEditTemplate(point) {
                     <span class="visually-hidden">Choose event type</span>
                     <img class="event__type-icon" width="17" height="17" src="img/icons/${point.type}.png" alt="Event type icon">
                   </label>
-                  <input class="event__type-toggle visually-hidden" id="event-type-toggle-${point.id}" type="checkbox">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__type-toggle visually-hidden" id="event-type-toggle-${point.id}" type="checkbox">
                   <div class="event__type-list">
                     <fieldset class="event__type-group">
                       <legend class="visually-hidden">Event type</legend>
                       ${types.map((type) => `
                         <div class="event__type-item">
-                          <input id="event-type-${type}-${point.id}" class="event__type-input visually-hidden" type="radio" name="event-type" value="${type}" ${point.type === type ? 'checked' : ''}>
+                          <input ${point.isDisabled ? 'disabled' : ''} id="event-type-${type}-${point.id}" class="event__type-input visually-hidden" type="radio" name="event-type" value="${type}" ${point.type === type ? 'checked' : ''}>
                           <label class="event__type-label event__type-label--${type}" for="event-type-${type}-${point.id}">${type.charAt(0).toUpperCase() + type.slice(1)}</label>
                         </div>
                       `).join('')}
@@ -58,26 +58,26 @@ function createFormEditTemplate(point) {
                 </div>
                 <div class="event__field-group event__field-group--destination">
                   <label class="event__label event__type-output" for="event-destination-${point.id}">${point.type}</label>
-                  <input class="event__input event__input--destination" id="event-destination-${point.id}" type="text" name="event-destination" value="${point.destination.name}" list="destination-list-${point.id}">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--destination" id="event-destination-${point.id}" type="text" name="event-destination" value="${point.destination.name}" list="destination-list-${point.id}">
                   ${dataList}
                 </div>
                 <div class="event__field-group event__field-group--time">
                   <label class="visually-hidden" for="event-start-time-${point.id}">From</label>
-                  <input class="event__input event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${new Date(point.dateFrom).toLocaleString()}">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${new Date(point.dateFrom).toLocaleString()}">
                   &mdash;
                   <label class="visually-hidden" for="event-end-time-${point.id}">To</label>
-                  <input class="event__input event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${new Date(point.dateTo).toLocaleString()}">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${new Date(point.dateTo).toLocaleString()}">
                 </div>
                 <div class="event__field-group event__field-group--price">
                   <label class="event__label" for="event-price-${point.id}">
                     <span class="visually-hidden">Price</span>
                     &euro;
                   </label>
-                  <input class="event__input event__input--price" id="event-price-${point.id}" type="text" name="event-price" value="${(point.basePrice / 100).toFixed(2)}">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--price" id="event-price-${point.id}" type="text" name="event-price" value="${(+point.basePrice).toFixed(2)}">
                 </div>
-                <button class="event__save-btn btn btn--blue" type="submit">Save</button>
-                <button class="event__reset-btn" type="reset">Delete</button>
-                <button class="event__rollup-btn" type="button">
+                <button class="event__save-btn btn btn--blue" type="submit" ${point.isDisabled ? 'disabled' : ''}>${point.isSaving ? 'Saving...' : 'Save'}</button>
+                <button class="event__reset-btn" type="reset" ${point.isDisabled ? 'disabled' : ''}>${point.isDeleting ? 'Deleting...' : 'Delete'}</button>
+                <button class="event__rollup-btn" type="button" ${point.isDeleting ? 'deleting...' : 'delete'}>
                   <span class="visually-hidden">Open event</span>
                 </button>
               </header>
@@ -98,24 +98,24 @@ export default class FormEditView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleFormExit = null;
   #handleFormDelete = null;
-  #startdatepicker = null;
-  #enddatepicker = null;
+  #startDatePicker = null;
+  #endDatePicker = null;
   #initialState = null;
   #minDate = undefined;
 
   removeElement() {
     super.removeElement();
-    if (this.#startdatepicker) {
-      this.#startdatepicker.destroy();
-      this.#startdatepicker = null;
-      this.#enddatepicker.destroy();
-      this.#enddatepicker = null;
+    if (this.#startDatePicker) {
+      this.#startDatePicker.destroy();
+      this.#startDatePicker = null;
+      this.#endDatePicker.destroy();
+      this.#endDatePicker = null;
 
     }
   }
 
   #setStartDatepicker() {
-    this.#startdatepicker = flatpickr(
+    this.#startDatePicker = flatpickr(
       this.element.querySelector('.event__input.event__input--time'),
       {
         dateFormat: 'd/m/y H:i',
@@ -129,13 +129,13 @@ export default class FormEditView extends AbstractStatefulView {
 
   #startDateChangeHandler = ([userDate]) => {
     this.#minDate = userDate;
-    this.updateElement({
+    this._setState({
       dateFrom: userDate,
     });
   };
 
   #setEndDatepicker = () => {
-    this.#enddatepicker = flatpickr(
+    this.#endDatePicker = flatpickr(
       this.element.querySelectorAll('.event__input.event__input--time')[1],
       {
         dateFormat: 'd/m/y H:i',
@@ -149,7 +149,7 @@ export default class FormEditView extends AbstractStatefulView {
   };
 
   #endDateChangeHandler = ([userDate]) => {
-    this.updateElement({
+    this._setState({
       dateTo: userDate,
     });
   };
@@ -178,7 +178,7 @@ export default class FormEditView extends AbstractStatefulView {
   #eventPriceHandler = (evt) => {
     const input = evt.target;
     const inputValue = input.value;
-    this.updateElement({basePrice: he.encode(String(inputValue * 100))});
+    this._setState({basePrice: he.encode(inputValue)});
   };
 
   _restoreHandlers() {
@@ -210,7 +210,7 @@ export default class FormEditView extends AbstractStatefulView {
   constructor({point, onFormSubmit, onExit, onDelete}) {
     super();
     this.#initialState = point;
-    this._setState(structuredClone(point));
+    this._setState({...structuredClone(point), ...{isDisabled: false, isSaving: false, isDeleting:false,}});
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormExit = onExit;
     this.#handleFormDelete = onDelete;
@@ -222,7 +222,7 @@ export default class FormEditView extends AbstractStatefulView {
   }
 
   exitWithReset = () => {
-    this.updateElement(this.#initialState);
+    this.updateElement(this.#initialState); // заменить на _setState???
     this.#handleFormExit();
   };
 
@@ -231,12 +231,26 @@ export default class FormEditView extends AbstractStatefulView {
     this.exitWithReset();
   };
 
-  #formDeleteHandler = (evt) => {
+  #formDeleteHandler = async (evt) => {
     evt.preventDefault();
-    this.#handleFormDelete(this._state);
+    this.updateElement({isDisabled: true, isDeleting: true});
+    try {
+      await this.#handleFormDelete(this._state);
+    } catch {
+      this.shake(this.resetFormState);
+    }
   };
 
-  #formSubmitHandler = (evt) => {
+  resetFormState = () => {
+    this.updateElement({
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+    });
+  };
+
+
+  #formSubmitHandler = async (evt) => {
     evt.preventDefault();
 
     const { type, offersMap } = this._state;
@@ -252,7 +266,12 @@ export default class FormEditView extends AbstractStatefulView {
     });
 
     this._setState({ pointOffers: offers });
-    this.#handleFormSubmit(this._state);
+    this.updateElement({isDisabled: true, isSaving: true});
+    try {
+      await this.#handleFormSubmit(this._state);
+    } catch {
+      this.shake(this.resetFormState);
+    }
   };
 }
 
