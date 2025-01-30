@@ -12,8 +12,10 @@ export const adaptToServer = (point, isAdd = false) => {
 
   if(!isAdd) {
     result.id = point.id;
+  } else {
+    delete point.id;
   }
-// console.log(result)
+
   return result;
 
 };

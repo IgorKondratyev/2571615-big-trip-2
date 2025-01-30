@@ -92,14 +92,12 @@ function createAddFormTemplate(point) {
             </form>
           </li>`;
 }
-
 export default class AddNewPointView extends AbstractStatefulView {
 
   #handleFormSave = null;
   #handleFormExit = null;
   #startDatePicker = null;
   #endDatePicker = null;
-  #minDate = undefined;
 
   removeElement() {
     super.removeElement();
@@ -112,37 +110,50 @@ export default class AddNewPointView extends AbstractStatefulView {
   }
 
   #setStartDatepicker() {
+    const startDataElement = this.element.querySelector('.event__input.event__input--time');
     this.#startDatePicker = flatpickr(
-      this.element.querySelector('.event__input.event__input--time'),
+      startDataElement,
       {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
         'time_24hr': true,
-        defaultDate: this._state.dateFrom,
+        minDate: 'today',
         onChange: this.#startDateChangeHandler,
       },
     );
+    if(this._state.dateFrom === '') {
+      startDataElement.value = '';
+    } else {
+      this.#startDatePicker.setDate(this._state.dateFrom);
+    }
+
   }
 
   #startDateChangeHandler = ([userDate]) => {
-    this.#minDate = userDate;
+    const minDate = userDate;
+    this.#endDatePicker.set('minDate', minDate);
     this._setState({
       dateFrom: userDate,
     });
   };
 
   #setEndDatepicker = () => {
+    const endDataElement = this.element.querySelectorAll('.event__input.event__input--time')[1];
     this.#endDatePicker = flatpickr(
-      this.element.querySelectorAll('.event__input.event__input--time')[1],
+      endDataElement,
       {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
         'time_24hr': true,
-        defaultDate: this._state.dateTo,
-        minDate: this.#minDate,
+        minDate: 'today',
         onChange: this.#endDateChangeHandler,
       },
     );
+    if(this._state.dateTo === '') {
+      endDataElement.value = '';
+    } else {
+      this.#endDatePicker.setDate(this._state.dateTo);
+    }
   };
 
   #endDateChangeHandler = ([userDate]) => {
@@ -178,22 +189,6 @@ export default class AddNewPointView extends AbstractStatefulView {
     this._setState({basePrice: he.encode(inputValue)});
   };
 
-  #offerCheckHandler = (evt) => {
-    const id = evt.target.id.replace('event-offer-', '');
-    const isChecked = evt.target.checked;
-    let offers = structuredClone(this._state.offers);
-    const offersState = structuredClone(this._state.pointOffers);
-    offersState.find((offer)=>offer.id === id).isChecked = isChecked;
-    this._setState({pointOffers: offersState});
-    if(isChecked && !offers.includes(id)) {
-      offers.push(id);
-    }
-    if(!isChecked && offers.includes(id)) {
-      offers = offers.filter((input) => input.id !== id);
-    }
-    this._setState({offers});
-  };
-
   _restoreHandlers() {
 
     this.element.querySelector('.event__reset-btn')
@@ -204,11 +199,6 @@ export default class AddNewPointView extends AbstractStatefulView {
 
     this.element.querySelector('.event__type-list')
       .addEventListener('click', this.#eventOptionsHandler);
-
-    this.element.querySelectorAll('.event__section.event__section--offers input')
-      .forEach((inputElement) => {
-        inputElement.addEventListener('change', this.#offerCheckHandler);
-      });
 
     const inputDestination = this.element.querySelector('.event__input.event__input--destination');
     inputDestination.addEventListener('focus', this.#destinationsClickOptionsHandler);
@@ -249,8 +239,19 @@ export default class AddNewPointView extends AbstractStatefulView {
   };
 
   #formSaveHandler = async (evt) => {
-
     evt.preventDefault();
+
+    const { type, offersMap } = this._state;
+    const offers = Object.values(offersMap[type]);
+
+    const offerElements = this.element.querySelectorAll('.event__section.event__section--offers input');
+
+    offerElements.forEach((input) => {
+      const offerById = offers.find((offer) => input.id.includes(offer.id));
+      if (offerById) {
+        offerById.isChecked = input.checked;
+      }
+    });
 
     this.updateElement({isDisabled: true, isSaving: true});
 
@@ -262,5 +263,3 @@ export default class AddNewPointView extends AbstractStatefulView {
   };
 
 }
-
-

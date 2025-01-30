@@ -96,7 +96,7 @@ export default class Model {
   }
 
   init = async () => {
-    // try {
+    try {
       const tasks = await this.#pointsApiService.points;
       this.rawPoints = tasks.map(adaptToClient);
       this.rawDestinations = await this.#pointsApiService.destinations;
@@ -105,7 +105,7 @@ export default class Model {
       this.createOffersMap();
       this.createResolvedPoints();
       this.mainState.initialStateOfPoints = this.getResolvedPoints();
-      this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', }};
+      this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', dateFrom: '', dateTo: ''}};
       delete this.emptyPoint.id;
       this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
       this.mainState.defaultSortedState.push([...this.mainState.initialStateOfPoints].toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
@@ -115,12 +115,12 @@ export default class Model {
       this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
       this.sortedState._notify(UpdateType.INIT);
       this.typesOfPoints = Object.keys(this.offersMap);
-    // } catch(err) {
-    //   this.rawPoints = [];
-    //   this.rawDestinations = [];
-    //   this.rawOffers = [];
-    //   this.sortedState._notify(UpdateType.LOAD_ERROR);
-    // }
+    } catch(err) {
+      this.rawPoints = [];
+      this.rawDestinations = [];
+      this.rawOffers = [];
+      this.sortedState._notify(UpdateType.LOAD_ERROR);
+    }
   };
 }
 
