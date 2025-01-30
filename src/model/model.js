@@ -105,7 +105,7 @@ export default class Model {
       this.createOffersMap();
       this.createResolvedPoints();
       this.mainState.initialStateOfPoints = this.getResolvedPoints();
-      this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', dateFrom: '', dateTo: ''}};
+      this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', dateFrom: null, dateTo: null}};
       delete this.emptyPoint.id;
       this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
       this.mainState.defaultSortedState.push([...this.mainState.initialStateOfPoints].toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));

@@ -121,7 +121,7 @@ export default class AddNewPointView extends AbstractStatefulView {
         onChange: this.#startDateChangeHandler,
       },
     );
-    if(this._state.dateFrom === '') {
+    if(this._state.dateFrom === null) {
       startDataElement.value = '';
     } else {
       this.#startDatePicker.setDate(this._state.dateFrom);
@@ -139,6 +139,10 @@ export default class AddNewPointView extends AbstractStatefulView {
 
   #setEndDatepicker = () => {
     const endDataElement = this.element.querySelectorAll('.event__input.event__input--time')[1];
+    let defaultDate = null;
+    if((this._state.dateTo !== null) && (this._state.dateFrom !== null)) {
+      defaultDate = new Date(this._state.dateTo) < new Date(this._state.dateFrom) ? new Date(this._state.dateFrom) : new Date(this._state.dateTo);
+    }
     this.#endDatePicker = flatpickr(
       endDataElement,
       {
@@ -146,10 +150,11 @@ export default class AddNewPointView extends AbstractStatefulView {
         enableTime: true,
         'time_24hr': true,
         minDate: 'today',
+        defaultDate,
         onChange: this.#endDateChangeHandler,
       },
     );
-    if(this._state.dateTo === '') {
+    if(this._state.dateTo === null) {
       endDataElement.value = '';
     } else {
       this.#endDatePicker.setDate(this._state.dateTo);

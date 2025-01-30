@@ -92,7 +92,6 @@ function createFormEditTemplate(point) {
             </form>
           </li>`;
 }
-
 export default class FormEditView extends AbstractStatefulView {
 
   #handleFormSubmit = null;
@@ -101,7 +100,6 @@ export default class FormEditView extends AbstractStatefulView {
   #startDatePicker = null;
   #endDatePicker = null;
   #initialState = null;
-  #minDate = undefined;
 
   removeElement() {
     super.removeElement();
@@ -128,7 +126,8 @@ export default class FormEditView extends AbstractStatefulView {
   }
 
   #startDateChangeHandler = ([userDate]) => {
-    this.#minDate = userDate;
+    const minDate = userDate;
+    this.#endDatePicker.set('minDate', minDate);
     this._setState({
       dateFrom: userDate,
     });
@@ -141,8 +140,8 @@ export default class FormEditView extends AbstractStatefulView {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
         'time_24hr': true,
-        defaultDate: this._state.dateTo,
-        minDate: this.#minDate !== undefined ? this.#minDate : this.#initialState.dateFrom,
+        minDate: this._state.dateFrom,
+        defaultDate: new Date(this._state.dateTo) < new Date(this._state.dateFrom) ? new Date(this._state.dateFrom) : new Date(this._state.dateTo),
         onChange: this.#endDateChangeHandler,
       },
     );
