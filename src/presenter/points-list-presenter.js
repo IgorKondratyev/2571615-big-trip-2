@@ -35,7 +35,8 @@ export default class PointsListPresenter {
       this.destroy(this.#pointsListComponent);
       this.#prevListComponent = null;
       this.destroy(this.#emptyListComponent);
-      this.#emptyListComponent = new EmptyPointsListView(this.#filteredState.currentFilterMessage);
+      const emptyMessage = this.#filteredState.currentFilterMessage === '' ? 'Click New Event to create your first point' : this.#filteredState.currentFilterMessage;
+      this.#emptyListComponent = new EmptyPointsListView(emptyMessage);
       render(this.#emptyListComponent, this.#emptyPointsListContainer);
       return;
     }

@@ -20,14 +20,13 @@ export default class ApiService {
    * @param {Headers} [config.headers] Заголовки запроса
    * @returns {Promise<Response>}
    */
-  async _load({
+  _load = async ({
     url,
     method = 'GET',
     body = null,
     headers = new Headers(),
-  }) {
+  }) => {
     headers.append('Authorization', this._authorization);
-
     const response = await fetch(
       `${this._endPoint}/${url}`,
       {method, body, headers},
@@ -39,7 +38,7 @@ export default class ApiService {
     } catch (err) {
       ApiService.catchError(err);
     }
-  }
+  };
 
   /**
    * Метод для обработки ответа

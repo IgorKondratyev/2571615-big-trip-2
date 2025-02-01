@@ -1,6 +1,6 @@
 export const filters = [
-  { value: 'everything', label: 'Everything', checked: false },
+  { value: 'everything', label: 'Everything', checked: true },
   { value: 'future', label: 'Future', checked: false},
   { value: 'present', label: 'Present', checked: false},
-  { value: 'past', label: 'Past', checked: true }
+  { value: 'past', label: 'Past', checked: false }
 ];

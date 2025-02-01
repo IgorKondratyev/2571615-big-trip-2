@@ -61,6 +61,9 @@ export default class SortPresenter {
     if (sortItem) {
       currentFilter = sortItem.querySelector('.trip-sort__input');
       const currentFilterValue = currentFilter.value;
+      if(currentFilterValue === 'sort-event' || currentFilterValue === 'sort-offer') {
+        return;
+      }
       if(currentFilterValue !== this.#currentSort) {
         this.sortActions[currentFilterValue]();
         this.#userActionsHandler(UserAction.SORT, UpdateType.MINOR, null);

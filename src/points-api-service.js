@@ -1,8 +1,8 @@
 import ApiService from './framework/api-service.js';
 import {Method} from './constants/server.js';
-import {adaptToServer} from './utils/adapt-to-terver.js';
+import {adaptToServer} from './utils/adapt-to-server.js';
 
-export default class TasksApiService extends ApiService {
+export default class PointsApiService extends ApiService {
 
   get points() {
     return this._load({url: 'points'})
@@ -38,8 +38,9 @@ export default class TasksApiService extends ApiService {
     const response = await this._load({
       url: 'points',
       method: Method.POST,
-      body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify(this.#adaptToServer(point, true)),
+      headers: new Headers({'Content-Type': 'application/json',
+      }),
     });
     const parsedResponse = await ApiService.parseResponse(response);
     return parsedResponse;

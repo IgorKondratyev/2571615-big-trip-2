@@ -4,7 +4,6 @@ import {render, replace} from '../framework/render.js';
 import {UserAction} from '../constants/user-action.js';
 import {UpdateType} from '../constants/update-type.js';
 
-
 export default class PointPresenter {
 
   #container = null;
@@ -45,28 +44,41 @@ export default class PointPresenter {
         this.replacePointToEditForm();
         document.addEventListener('keydown', this.escKeyDownHandler);
       },
-      onFavoriteButtonClick: (pointData) => {
-        pointData.isFavorite = !pointData.isFavorite;
-        this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, pointData);
+      onFavoriteButtonClick: async (pointData) => {
+        try {
+          pointData.isFavorite = !pointData.isFavorite;
+          await this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, pointData);
+        } catch {
+          throw new Error('Can\'t update point');
+        }
       },
     }
     );
 
     this.#formEditComponent = new FormEditView({
       point: this.#point,
-      onFormSubmit: (state) => {
-        this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, state);
-        this.replaceEditFormToPoint();
-        document.removeEventListener('keydown', this.escKeyDownHandler);
+      onFormSubmit: async (state) => {
+        try {
+          await this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, state);
+          this.replaceEditFormToPoint();
+          document.removeEventListener('keydown', this.escKeyDownHandler);
+        } catch {
+          throw new Error('Can\'t update point');
+        }
+
       },
       onExit: () => {
         this.replaceEditFormToPoint();
         document.removeEventListener('keydown', this.escKeyDownHandler);
       },
-      onDelete: (state) => {
-        this.#userActionsHandler(UserAction.DELETE, UpdateType.MINOR, state);
-        this.replaceEditFormToPoint();
-        document.removeEventListener('keydown', this.escKeyDownHandler);
+      onDelete: async (state) => {
+        try {
+          await this.#userActionsHandler(UserAction.DELETE, UpdateType.MINOR, state);
+          this.replaceEditFormToPoint();
+          document.removeEventListener('keydown', this.escKeyDownHandler);
+        } catch {
+          throw new Error('Can\'t update point');
+        }
       },
     });
 
