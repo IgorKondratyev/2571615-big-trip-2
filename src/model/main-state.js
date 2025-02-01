@@ -25,7 +25,7 @@ export default class MainState extends Observable {
 
   deletePoint = async (type, payload) => {
     try {
-      await this.#pointsApiService.deleteTask(payload);
+      await this.#pointsApiService.deletePoint(payload);
       const newCurrentStateOfPoints = (this.currentStateOfPoints.at(-1).map((item)=> item.id === payload.id ? null : item)).filter(Boolean);
       this.currentStateOfPoints.push(newCurrentStateOfPoints);
       this._notify(type, payload);
@@ -36,7 +36,7 @@ export default class MainState extends Observable {
 
   addPoint = async (type, payload) => {
     try {
-      const response = await this.#pointsApiService.addTask(payload);
+      const response = await this.#pointsApiService.addPoint(payload);
       const newTask = {...adaptToClient(response), ...payload};
       const newCurrentStateOfPoints = [...this.currentStateOfPoints.at(-1)];
       newCurrentStateOfPoints.unshift(newTask);

@@ -46,8 +46,8 @@ export default class PointPresenter {
       },
       onFavoriteButtonClick: async (pointData) => {
         try {
-          pointData.isFavorite = !pointData.isFavorite;
-          await this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, pointData);
+          const modifiedPoint = {...structuredClone(pointData), isFavorite: !pointData.isFavorite};
+          await this.#userActionsHandler(UserAction.POINT_PATCH, UpdateType.PATCH, modifiedPoint);
         } catch {
           throw new Error('Can\'t update point');
         }

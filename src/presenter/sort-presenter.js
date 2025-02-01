@@ -1,5 +1,5 @@
 import SortView from '../view/sort-view';
-import {sortOptions} from '../constants/sort-options';
+import {sortOptions, SORTS} from '../constants/sort-options';
 import {render, replace} from '../framework/render.js';
 import {UserAction} from '../constants/user-action.js';
 import {UpdateType} from '../constants/update-type.js';
@@ -49,9 +49,9 @@ export default class SortPresenter {
   sortActions = {
     'sort-day': this.createSortAction('day', (a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)),
     'sort-time': this.createSortAction('time', (a, b) =>
-      (new Date(a.dateTo) - new Date(a.dateFrom)) - (new Date(b.dateTo) - new Date(b.dateFrom))
+      ((new Date(b.dateTo) - new Date(b.dateFrom)) - new Date(a.dateTo) - new Date(a.dateFrom))
     ),
-    'sort-price': this.createSortAction('price', (a, b) => a.basePrice - b.basePrice)
+    'sort-price': this.createSortAction('price', (a, b) => b.basePrice - a.basePrice)
   };
 
   #onSortClickHandler = (evt) => {
@@ -61,7 +61,7 @@ export default class SortPresenter {
     if (sortItem) {
       currentFilter = sortItem.querySelector('.trip-sort__input');
       const currentFilterValue = currentFilter.value;
-      if(currentFilterValue === 'sort-event' || currentFilterValue === 'sort-offer') {
+      if(currentFilterValue === SORTS.SORT_EVENT || currentFilterValue === SORTS.SORT_OFFER) {
         return;
       }
       if(currentFilterValue !== this.#currentSort) {

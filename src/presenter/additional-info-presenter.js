@@ -1,7 +1,6 @@
 import {render, remove, RenderPosition} from '../framework/render.js';
 import AdditionalInfoView from '../view/additional-info-view.js';
 
-
 export default class AdditionalInfoPresenter {
 
   #container = document.querySelector('.trip-main');

@@ -16,6 +16,15 @@ function createAddFormTemplate(point) {
     </div>
   `).join('');
 
+  const offersSection = point.pointOffers.length > 0 ? `
+  <section class="event__section event__section--offers">
+                  <h3 class="event__section-title event__section-title--offers">Offers</h3>
+                  <div class="event__available-offers">
+                    ${offersMarkup}
+                  </div>
+                </section>
+  ` : '';
+
   const pointDestinationPhotos = point.destination?.pictures?.length > 0 ? `<div class="event__photos-container">
                       <div class="event__photos-tape">
                       ${point.destination.pictures.map((picture)=>`<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
@@ -82,12 +91,7 @@ function createAddFormTemplate(point) {
                 </button>
               </header>
               <section class="event__details">
-                <section class="event__section event__section--offers">
-                  <h3 class="event__section-title event__section-title--offers">Offers</h3>
-                  <div class="event__available-offers">
-                    ${offersMarkup}
-                  </div>
-                </section>
+                ${offersSection}
                 ${pointDestination}
             </form>
           </li>`;
@@ -213,6 +217,9 @@ export default class AddNewPointView extends AbstractStatefulView {
   _restoreHandlers() {
 
     this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formCancelHandler);
+
+    this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#formCancelHandler);
 
     this.element.querySelector('.event__save-btn.btn.btn--blue')

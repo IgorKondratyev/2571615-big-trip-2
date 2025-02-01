@@ -12,3 +12,8 @@ export const sortOptions = {
     offer: false
   }
 };
+
+export const SORTS = {
+  SORT_EVENT: 'sort-event',
+  SORT_OFFER: 'sort-offer',
+};
