@@ -16,7 +16,7 @@ function createAddFormTemplate(point) {
     </div>
   `).join('');
 
-  const offersSection = point.pointOffers.length > 0 ? `
+  const offersSectionTemplate = point.pointOffers.length > 0 ? `
   <section class="event__section event__section--offers">
                   <h3 class="event__section-title event__section-title--offers">Offers</h3>
                   <div class="event__available-offers">
@@ -25,15 +25,15 @@ function createAddFormTemplate(point) {
                 </section>
   ` : '';
 
-  const pointDestinationPhotos = point.destination?.pictures?.length > 0 ? `<div class="event__photos-container">
+  const pointDestinationPhotosTemplate = point.destination?.pictures?.length > 0 ? `<div class="event__photos-container">
                       <div class="event__photos-tape">
                       ${point.destination.pictures.map((picture)=>`<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
                        </div>` : '';
 
-  const pointDestination = point.destination?.description ? `<section class="event__section event__section--destination">
+  const pointDestinationTemplate = point.destination?.description ? `<section class="event__section event__section--destination">
                   <h3 class="event__section-title event__section-title--destination">Destination</h3>
                   <p class="event__destination-description">${point.destination.description}</p>
-                  ${pointDestinationPhotos}
+                  ${pointDestinationPhotosTemplate}
                   </section>` : '';
 
   const destinations = Object.values(point.destinationsMap).map((item)=>item.name);
@@ -91,8 +91,8 @@ function createAddFormTemplate(point) {
                 </button>
               </header>
               <section class="event__details">
-                ${offersSection}
-                ${pointDestination}
+                ${offersSectionTemplate}
+                ${pointDestinationTemplate}
             </form>
           </li>`;
 }

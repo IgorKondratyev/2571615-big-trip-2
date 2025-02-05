@@ -47,11 +47,11 @@ export default class SortPresenter {
   }
 
   sortActions = {
-    'sort-day': this.createSortAction('day', (a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)),
-    'sort-time': this.createSortAction('time', (a, b) =>
+    [SORTS.DAY]: this.createSortAction('day', (a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)),
+    [SORTS.TIME]: this.createSortAction('time', (a, b) =>
       ((new Date(b.dateTo) - new Date(b.dateFrom)) - new Date(a.dateTo) - new Date(a.dateFrom))
     ),
-    'sort-price': this.createSortAction('price', (a, b) => b.basePrice - a.basePrice)
+    [SORTS.PRICE]: this.createSortAction('price', (a, b) => b.basePrice - a.basePrice)
   };
 
   #onSortClickHandler = (evt) => {
@@ -61,7 +61,7 @@ export default class SortPresenter {
     if (sortItem) {
       currentFilter = sortItem.querySelector('.trip-sort__input');
       const currentFilterValue = currentFilter.value;
-      if(currentFilterValue === SORTS.SORT_EVENT || currentFilterValue === SORTS.SORT_OFFER) {
+      if(currentFilterValue === SORTS.EVENT || currentFilterValue === SORTS.OFFER) {
         return;
       }
       if(currentFilterValue !== this.#currentSort) {

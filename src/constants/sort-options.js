@@ -14,6 +14,9 @@ export const sortOptions = {
 };
 
 export const SORTS = {
-  SORT_EVENT: 'sort-event',
-  SORT_OFFER: 'sort-offer',
+  DAY: 'sort-day',
+  EVENT: 'sort-event',
+  OFFER: 'sort-offer',
+  TIME: 'sort-time',
+  PRICE: 'sort-price',
 };

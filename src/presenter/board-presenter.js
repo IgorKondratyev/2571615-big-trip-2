@@ -7,6 +7,7 @@ import AdditionalInfoPresenter from './additional-info-presenter.js';
 import FailedLoadDataPresenter from './failed-load-data-presenter.js';
 import {UserAction} from '../constants/user-action.js';
 import {UpdateType} from '../constants/update-type.js';
+import {SORTS} from '../constants/sort-options';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 const TimeLimit = {
@@ -207,7 +208,7 @@ export default class BoardPresenter {
     this.#mainState.addObserver(this.patchFilteredState);
     const sortAction = (type, payload) => {
       if(type !== UpdateType.PATCH || this.currentSortCallback.length === 0) {
-        this.#sortPresenter.sortActions['sort-day']();
+        this.#sortPresenter.sortActions[SORTS.DAY]();
       }
       type = UpdateType.MAJOR;
       this.patchSortedState(type, payload);
