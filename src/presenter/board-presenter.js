@@ -7,7 +7,7 @@ import AdditionalInfoPresenter from './additional-info-presenter.js';
 import FailedLoadDataPresenter from './failed-load-data-presenter.js';
 import {UserAction} from '../constants/user-action.js';
 import {UpdateType} from '../constants/update-type.js';
-import {SORTS} from '../constants/sort-options';
+import {Sort} from '../constants/sort-options';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 const TimeLimit = {
@@ -49,7 +49,7 @@ export default class BoardPresenter {
   currentFilterCallback;
   currentFilterMessage;
 
-  currentSortCallback = [];
+  currentSortCallbacks = [];
 
   userActionsHandler = async (action, type, payload) => {
     if(this.loadingState.isLoading) {
@@ -154,7 +154,7 @@ export default class BoardPresenter {
   };
 
   patchSortedState = (type, payload) => {
-    const sortCallback = this.currentSortCallback.at(-1);
+    const sortCallback = this.currentSortCallbacks.at(-1);
     this.#sortedState.patchSortedState(sortCallback, type, payload);
   };
 
@@ -198,7 +198,7 @@ export default class BoardPresenter {
 
     this.sortContainer = document.querySelector('.trip-events');
     this.#sortPresenter = new SortPresenter(this.sortContainer, this.userActionsHandler);
-    this.currentSortCallback = this.#sortPresenter.currentSortCallback;
+    this.currentSortCallbacks = this.#sortPresenter.currentSortCallbacks;
 
     const modifyAdditionalInfoItem = () => {
       this.#mainState.defaultSortedState.push(this.#mainState.currentStateOfPoints.at(-1).toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
@@ -207,8 +207,8 @@ export default class BoardPresenter {
     this.#mainState.addObserver(modifyAdditionalInfoItem);
     this.#mainState.addObserver(this.patchFilteredState);
     const sortAction = (type, payload) => {
-      if(type !== UpdateType.PATCH || this.currentSortCallback.length === 0) {
-        this.#sortPresenter.sortActions[SORTS.DAY]();
+      if(type !== UpdateType.PATCH || this.currentSortCallbacks.length === 0) {
+        this.#sortPresenter.sortActions[Sort.DAY]();
       }
       type = UpdateType.MAJOR;
       this.patchSortedState(type, payload);

@@ -77,7 +77,7 @@ export default class PointPresenter {
           this.replaceEditFormToPoint();
           document.removeEventListener('keydown', this.escKeyDownHandler);
         } catch {
-          throw new Error('Can\'t update point');
+          throw new Error('Can\'t delete point');
         }
       },
     });

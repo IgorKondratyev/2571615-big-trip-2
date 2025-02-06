@@ -13,7 +13,7 @@ export const sortOptions = {
   }
 };
 
-export const SORTS = {
+export const Sort = {
   DAY: 'sort-day',
   EVENT: 'sort-event',
   OFFER: 'sort-offer',
