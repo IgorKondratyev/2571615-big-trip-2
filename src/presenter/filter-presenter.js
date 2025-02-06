@@ -1,6 +1,6 @@
 import FiltersView from '../view/filters-view.js';
 import {render, replace} from '../framework/render.js';
-import {filters} from '../constants/filters.js';
+import {filters, Filter} from '../constants/filters.js';
 
 export default class FilterPresenter {
 
@@ -52,7 +52,7 @@ export default class FilterPresenter {
     this.#prevFiltersComponent = this.#filtersComponent;
   }
 
-  updateFilters = (selectedValue = 'everything') => {
+  updateFilters = (selectedValue = Filter.EVERYTHING) => {
     this.#filters.forEach((filter) => {
       filter['checked'] = (filter.value === selectedValue);
     });
@@ -60,27 +60,27 @@ export default class FilterPresenter {
 
   #filterActions = {
     everything: () => {
-      this.#currentFilter = 'everything';
+      this.#currentFilter = Filter.EVERYTHING;
       this.currentFilterMessage.push('Click New Event to create your first point');
-      this.updateFilters('everything');
+      this.updateFilters(Filter.EVERYTHING);
       this.currentFilterCallback.push((state) => state);
     },
     future: () => {
-      this.#currentFilter = 'future';
+      this.#currentFilter = Filter.FUTURE;
       this.currentFilterMessage.push('There are no future events now');
-      this.updateFilters('future');
+      this.updateFilters(Filter.FUTURE);
       this.currentFilterCallback.push((state) => state.filter((point) => new Date(point.dateFrom) > new Date()));
     },
     present: () => {
-      this.#currentFilter = 'present';
+      this.#currentFilter = Filter.PRESENT;
       this.currentFilterMessage.push('There are no present events now');
-      this.updateFilters('present');
+      this.updateFilters(Filter.PRESENT);
       this.currentFilterCallback.push((state) => state.filter((point) => (new Date(point.dateFrom) < new Date()) && (new Date(point.dateTo) > new Date())));
     },
     past: () => {
-      this.#currentFilter = 'past';
+      this.#currentFilter = Filter.PAST;
       this.currentFilterMessage.push('There are no past events now');
-      this.updateFilters('past');
+      this.updateFilters(Filter.PAST);
       this.currentFilterCallback.push((state) => state.filter((point) => new Date(point.dateTo) < new Date()));
     }
   };

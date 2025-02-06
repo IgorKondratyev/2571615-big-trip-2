@@ -16,15 +16,24 @@ function createAddFormTemplate(point) {
     </div>
   `).join('');
 
-  const pointDestinationPhotos = point.destination?.pictures?.length > 0 ? `<div class="event__photos-container">
+  const offersSectionTemplate = point.pointOffers.length > 0 ? `
+  <section class="event__section event__section--offers">
+                  <h3 class="event__section-title event__section-title--offers">Offers</h3>
+                  <div class="event__available-offers">
+                    ${offersMarkup}
+                  </div>
+                </section>
+  ` : '';
+
+  const pointDestinationPhotosTemplate = point.destination?.pictures?.length > 0 ? `<div class="event__photos-container">
                       <div class="event__photos-tape">
                       ${point.destination.pictures.map((picture)=>`<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
                        </div>` : '';
 
-  const pointDestination = point.destination?.description ? `<section class="event__section event__section--destination">
+  const pointDestinationTemplate = point.destination?.description ? `<section class="event__section event__section--destination">
                   <h3 class="event__section-title event__section-title--destination">Destination</h3>
                   <p class="event__destination-description">${point.destination.description}</p>
-                  ${pointDestinationPhotos}
+                  ${pointDestinationPhotosTemplate}
                   </section>` : '';
 
   const destinations = Object.values(point.destinationsMap).map((item)=>item.name);
@@ -82,13 +91,8 @@ function createAddFormTemplate(point) {
                 </button>
               </header>
               <section class="event__details">
-                <section class="event__section event__section--offers">
-                  <h3 class="event__section-title event__section-title--offers">Offers</h3>
-                  <div class="event__available-offers">
-                    ${offersMarkup}
-                  </div>
-                </section>
-                ${pointDestination}
+                ${offersSectionTemplate}
+                ${pointDestinationTemplate}
             </form>
           </li>`;
 }
@@ -213,6 +217,9 @@ export default class AddNewPointView extends AbstractStatefulView {
   _restoreHandlers() {
 
     this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formCancelHandler);
+
+    this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#formCancelHandler);
 
     this.element.querySelector('.event__save-btn.btn.btn--blue')

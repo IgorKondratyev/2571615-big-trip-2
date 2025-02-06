@@ -1,8 +1,7 @@
 import {render, remove, RenderPosition} from '../framework/render.js';
 import {UserAction} from '../constants/user-action.js';
 import {UpdateType} from '../constants/update-type.js';
-import AddNewPointView from '../view/add-new-point.js';
-
+import AddNewPointView from '../view/add-new-point-view.js';
 
 export default class AddNewPointPresenter {
 
@@ -11,15 +10,14 @@ export default class AddNewPointPresenter {
   #point = null;
   #formComponent = null;
   #currentEditIdController = null;
-  #defaultPatchFilteredState;
+  #getDefaultFilteredState;
   #getDefaultFiltersState;
   #userActionsHandler = null;
   #addButton = document.querySelector('.trip-main__event-add-btn.btn.btn--big.btn--yellow');
 
-
   addButtonInit = () => {
     this.#addButton.addEventListener('click', ()=>(this.#getDefaultFiltersState)());
-    this.#addButton.addEventListener('click', this.#defaultPatchFilteredState);
+    this.#addButton.addEventListener('click', this.#getDefaultFilteredState);
     this.#addButton.addEventListener('click', this.renderForm);
   };
 
@@ -50,7 +48,6 @@ export default class AddNewPointPresenter {
       return ulElement;
     }
   };
-
 
   init(point) {
     this.#point = structuredClone(point);
@@ -83,17 +80,16 @@ export default class AddNewPointPresenter {
       render(this.#formComponent, this.generateContainer(), RenderPosition.AFTERBEGIN);
     }
 
-
     document.addEventListener('keydown', this.handleEscKeyDown);
 
     this.#addButton.disabled = true;
 
   };
 
-  constructor (currentEditIdController, userActionsHandler, defaultPatchFilteredState, updateFilters) {
+  constructor (currentEditIdController, userActionsHandler, getDefaultFilteredState, updateFilters) {
     this.#currentEditIdController = currentEditIdController;
     this.#userActionsHandler = userActionsHandler;
-    this.#defaultPatchFilteredState = defaultPatchFilteredState;
+    this.#getDefaultFilteredState = getDefaultFilteredState;
     this.#getDefaultFiltersState = updateFilters;
   }
 

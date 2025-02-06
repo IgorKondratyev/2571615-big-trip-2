@@ -12,3 +12,11 @@ export const sortOptions = {
     offer: false
   }
 };
+
+export const Sort = {
+  DAY: 'sort-day',
+  EVENT: 'sort-event',
+  OFFER: 'sort-offer',
+  TIME: 'sort-time',
+  PRICE: 'sort-price',
+};

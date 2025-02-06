@@ -7,13 +7,13 @@ import AdditionalInfoPresenter from './additional-info-presenter.js';
 import FailedLoadDataPresenter from './failed-load-data-presenter.js';
 import {UserAction} from '../constants/user-action.js';
 import {UpdateType} from '../constants/update-type.js';
+import {Sort} from '../constants/sort-options';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 const TimeLimit = {
   LOWER_LIMIT: 350,
   UPPER_LIMIT: 1000,
 };
-
 export default class BoardPresenter {
 
   #addNewPointPresenter;
@@ -33,6 +33,7 @@ export default class BoardPresenter {
   });
 
   currentEditId = {editID: undefined};
+
   currentEditIdController = (id = undefined) => {
     const currentID = this.currentEditId.editID;
     if(currentID) {
@@ -48,7 +49,7 @@ export default class BoardPresenter {
   currentFilterCallback;
   currentFilterMessage;
 
-  currentSortCallback;
+  currentSortCallbacks = [];
 
   userActionsHandler = async (action, type, payload) => {
     if(this.loadingState.isLoading) {
@@ -69,7 +70,7 @@ export default class BoardPresenter {
         break;
       case UserAction.FILTER:
         try {
-          await this.patchFilteredState(type, payload);
+          this.patchFilteredState(type, payload);
           this.#uiBlocker.unblock();
         } catch(err) {
           this.#uiBlocker.unblock();
@@ -78,7 +79,7 @@ export default class BoardPresenter {
         break;
       case UserAction.SORT:
         try {
-          await this.patchSortedState(type, payload);
+          this.patchSortedState(type, payload);
           this.#uiBlocker.unblock();
         } catch(err) {
           this.#uiBlocker.unblock();
@@ -113,13 +114,15 @@ export default class BoardPresenter {
         this.#loadingPresenter.destroy();
         this.loadingState.isLoading = false;
         this.#failedLoadDataPresenter.renderComponent();
+        this.#filterPresenter.renderFilters(this.#mainState.currentStateOfPoints.at(-1));
         return;
       case UpdateType.INIT:
         this.#loadingPresenter.destroy();
         this.loadingState.isLoading = false;
         this.#sortPresenter.init();
-        this.#pointsListPresenter.init(this.#mainState.initialStateOfPoints);
+        this.#pointsListPresenter.init(this.#mainState.defaultSortedState.at(-1));
         this.#addNewPointPresenter.init(this.model.emptyPoint);
+        this.#filterPresenter.renderFilters(this.#mainState.currentStateOfPoints.at(-1));
         break;
       case UpdateType.PATCH:
         this.#pointPresenters.at(-1)[payload.id].renderPoint(payload);
@@ -130,11 +133,10 @@ export default class BoardPresenter {
         break;
       case UpdateType.MAJOR:
         this.#sortPresenter.renderSort();
-        this.#filterPresenter.renderFilters();
+        this.#filterPresenter.renderFilters(this.#mainState.currentStateOfPoints.at(-1));
         this.#pointsListPresenter.renderPointsList(this.#sortedState.sortedStateOfPoints.at(-1));
     }
-    this.#additionalInfoPresenter.renderInfoComponent(this.#mainState.defaultSortedState);
-    this.#filterPresenter.renderFilters(this.#mainState.currentStateOfPoints.at(-1));
+
   };
 
   patchCurrentStateOfPoints = async (type, payload) => {
@@ -145,23 +147,15 @@ export default class BoardPresenter {
     }
   };
 
-  patchFilteredState = async (type, payload) => {
-    try {
-      const filterCallback = this.currentFilterCallback.at(-1);
-      const filterMsg = this.currentFilterMessage.at(-1);
-      await this.#filteredState.patchFilteredState(filterCallback, filterMsg, type, payload);
-    } catch(err) {
-      throw new Error('Can\'t filter points');
-    }
+  patchFilteredState = (type, payload) => {
+    const filterCallback = this.currentFilterCallback.at(-1);
+    const filterMsg = this.currentFilterMessage.at(-1);
+    this.#filteredState.patchFilteredState(filterCallback, filterMsg, type, payload);
   };
 
-  patchSortedState = async (type, payload) => {
-    try {
-      const sortCallback = this.currentSortCallback.at(-1);
-      await this.#sortedState.patchSortedState(sortCallback, type, payload);
-    } catch(err) {
-      throw new Error('Can\'t sort points');
-    }
+  patchSortedState = (type, payload) => {
+    const sortCallback = this.currentSortCallbacks.at(-1);
+    this.#sortedState.patchSortedState(sortCallback, type, payload);
   };
 
   deletePoint = async (type, payload) => {
@@ -200,24 +194,27 @@ export default class BoardPresenter {
     this.currentFilterCallback = this.#filterPresenter.currentFilterCallback;
     this.currentFilterMessage = this.#filterPresenter.currentFilterMessage;
 
-    this.#addNewPointPresenter = new AddNewPointPresenter(this.currentEditIdController, this.userActionsHandler, this.#filteredState.defaultPatchFilteredState, this.#filterPresenter.updateFilters);
+    this.#addNewPointPresenter = new AddNewPointPresenter(this.currentEditIdController, this.userActionsHandler, this.#filteredState.getDefaultFilteredState, this.#filterPresenter.updateFilters);
 
     this.sortContainer = document.querySelector('.trip-events');
     this.#sortPresenter = new SortPresenter(this.sortContainer, this.userActionsHandler);
-    this.currentSortCallback = this.#sortPresenter.currentSortCallback;
+    this.currentSortCallbacks = this.#sortPresenter.currentSortCallbacks;
 
-    const defaultSortingAction = () => {
+    const modifyAdditionalInfoItem = () => {
       this.#mainState.defaultSortedState.push(this.#mainState.currentStateOfPoints.at(-1).toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
+      this.#additionalInfoPresenter.renderInfoComponent(this.#mainState.defaultSortedState);
     };
-    this.#mainState.addObserver(defaultSortingAction);
-    this.#mainState.addObserver(this.modelEventHandler);
+    this.#mainState.addObserver(modifyAdditionalInfoItem);
     this.#mainState.addObserver(this.patchFilteredState);
-    this.#filteredState.addObserver(this.modelEventHandler);
-    const defaultSortAction = (type, payload) => {
-      this.#sortPresenter.sortActions['sort-day']();
+    const sortAction = (type, payload) => {
+      if(type !== UpdateType.PATCH || this.currentSortCallbacks.length === 0) {
+        this.#sortPresenter.sortActions[Sort.DAY]();
+      }
+      type = UpdateType.MAJOR;
       this.patchSortedState(type, payload);
+
     };
-    this.#filteredState.addObserver(defaultSortAction);
+    this.#filteredState.addObserver(sortAction);
     this.#sortedState.addObserver(this.modelEventHandler);
 
   }

@@ -34,7 +34,7 @@ export default class PointsApiService extends ApiService {
     return parsedResponse;
   }
 
-  async addTask(point) {
+  async addPoint(point) {
     const response = await this._load({
       url: 'points',
       method: Method.POST,
@@ -46,7 +46,7 @@ export default class PointsApiService extends ApiService {
     return parsedResponse;
   }
 
-  async deleteTask(point) {
+  async deletePoint(point) {
     const response = await this._load({
       url: `points/${point.id}`,
       method: Method.DELETE,
