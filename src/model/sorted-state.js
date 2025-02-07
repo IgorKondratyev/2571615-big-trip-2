@@ -10,4 +10,8 @@ export default class SortedState extends Observable {
     this.sortedStateOfPoints.push(newSortedState);
     this._notify(type, payload);
   };
+
+  externalNotification = (event, payload) => {
+    this._notify(event, payload);
+  };
 }

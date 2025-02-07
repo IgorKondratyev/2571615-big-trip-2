@@ -46,8 +46,8 @@ export default class BoardPresenter {
   #filteredState;
   #sortedState;
 
-  currentFilterCallback;
-  currentFilterMessage;
+  currentFilterCallbacks;
+  currentFilterMessages;
 
   currentSortCallbacks = [];
 
@@ -120,7 +120,7 @@ export default class BoardPresenter {
         this.#loadingPresenter.destroy();
         this.loadingState.isLoading = false;
         this.#sortPresenter.init();
-        this.#pointsListPresenter.init(this.#mainState.defaultSortedState.at(-1));
+        this.#pointsListPresenter.init(this.#mainState.defaultSortedPoints.at(-1));
         this.#addNewPointPresenter.init(this.model.emptyPoint);
         this.#filterPresenter.renderFilters(this.#mainState.currentStateOfPoints.at(-1));
         break;
@@ -148,8 +148,8 @@ export default class BoardPresenter {
   };
 
   patchFilteredState = (type, payload) => {
-    const filterCallback = this.currentFilterCallback.at(-1);
-    const filterMsg = this.currentFilterMessage.at(-1);
+    const filterCallback = this.currentFilterCallbacks.at(-1);
+    const filterMsg = this.currentFilterMessages.at(-1);
     this.#filteredState.patchFilteredState(filterCallback, filterMsg, type, payload);
   };
 
@@ -184,15 +184,15 @@ export default class BoardPresenter {
 
     this.#loadingPresenter = new LoadingPresenter();
 
-    this.#additionalInfoPresenter = new AdditionalInfoPresenter(this.#mainState.defaultSortedState);
+    this.#additionalInfoPresenter = new AdditionalInfoPresenter(this.#mainState.defaultSortedPoints);
 
     this.#pointsListPresenter = new PointsListPresenter(this.container, this.userActionsHandler, this.#filteredState, this.currentEditId, this.currentEditIdController);
     this.#pointPresenters = this.#pointsListPresenter.pointPresenters;
 
     this.filtersContainer = filterContainer;
     this.#filterPresenter = new FilterPresenter(this.filtersContainer, this.userActionsHandler);
-    this.currentFilterCallback = this.#filterPresenter.currentFilterCallback;
-    this.currentFilterMessage = this.#filterPresenter.currentFilterMessage;
+    this.currentFilterCallbacks = this.#filterPresenter.currentFilterCallbacks;
+    this.currentFilterMessages = this.#filterPresenter.currentFilterMessages;
 
     this.#addNewPointPresenter = new AddNewPointPresenter(this.currentEditIdController, this.userActionsHandler, this.#filteredState.getDefaultFilteredState, this.#filterPresenter.updateFilters);
 
@@ -201,8 +201,8 @@ export default class BoardPresenter {
     this.currentSortCallbacks = this.#sortPresenter.currentSortCallbacks;
 
     const modifyAdditionalInfoItem = () => {
-      this.#mainState.defaultSortedState.push(this.#mainState.currentStateOfPoints.at(-1).toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
-      this.#additionalInfoPresenter.renderInfoComponent(this.#mainState.defaultSortedState);
+      this.#mainState.defaultSortedPoints.push(this.#mainState.currentStateOfPoints.at(-1).toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
+      this.#additionalInfoPresenter.renderInfoComponent(this.#mainState.defaultSortedPoints);
     };
     this.#mainState.addObserver(modifyAdditionalInfoItem);
     this.#mainState.addObserver(this.patchFilteredState);

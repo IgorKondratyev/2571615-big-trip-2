@@ -1,6 +1,6 @@
 import PointsListView from '../view/points-list-view';
 import PointPresenter from './point-presenter.js';
-import EmptyPointsListView from '../view/empty-view.js';
+import EmptyPointsListView from '../view/empty-points-list-view.js';
 import {render, replace, remove} from '../framework/render.js';
 
 export default class PointsListPresenter {

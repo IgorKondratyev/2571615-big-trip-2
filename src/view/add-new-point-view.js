@@ -72,10 +72,10 @@ function createAddFormTemplate(point) {
                 </div>
                 <div class="event__field-group event__field-group--time">
                   <label class="visually-hidden" for="event-start-time-${point.id}">From</label>
-                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time" value="${new Date(point.dateFrom).toLocaleString()}">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--time" id="event-start-time-${point.id}" type="text" name="event-start-time">
                   &mdash;
                   <label class="visually-hidden" for="event-end-time-${point.id}">To</label>
-                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time" value="${new Date(point.dateTo).toLocaleString()}">
+                  <input ${point.isDisabled ? 'disabled' : ''} class="event__input event__input--time" id="event-end-time-${point.id}" type="text" name="event-end-time">
                 </div>
                 <div class="event__field-group event__field-group--price">
                   <label class="event__label" for="event-price-${point.id}">

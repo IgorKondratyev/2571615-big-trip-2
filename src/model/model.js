@@ -108,18 +108,18 @@ export default class Model {
       this.emptyPoint = {... this.mainState.initialStateOfPoints[0], ...{basePrice:0, destination: {name: ''}, offers: [], pointOffers: [], type: 'flight', dateFrom: null, dateTo: null}};
       delete this.emptyPoint.id;
       this.mainState.currentStateOfPoints.push([...this.mainState.initialStateOfPoints]);
-      this.mainState.defaultSortedState.push([...this.mainState.initialStateOfPoints].toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
+      this.mainState.defaultSortedPoints.push([...this.mainState.initialStateOfPoints].toSorted((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)));
       this.filteredState.currentStateOfPoints = this.mainState.currentStateOfPoints;
       this.filteredState.filteredStateOfPoints.push(this.mainState.initialStateOfPoints);
       this.sortedState.filteredStateOfPoints = this.filteredState.filteredStateOfPoints;
       this.sortedState.sortedStateOfPoints.push(this.sortedState.filteredStateOfPoints[0]);
-      this.sortedState._notify(UpdateType.INIT);
+      this.sortedState.externalNotification(UpdateType.INIT);
       this.typesOfPoints = Object.keys(this.offersMap);
     } catch(err) {
       this.rawPoints = [];
       this.rawDestinations = [];
       this.rawOffers = [];
-      this.sortedState._notify(UpdateType.LOAD_ERROR);
+      this.sortedState.externalNotification(UpdateType.LOAD_ERROR);
     }
   };
 }

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import {MILLISECONDS_IN_A_DAY, MILLISECONDS_IN_AN_HOUR, MILLISECONDS_IN_A_MINUTE} from '../constants/time-constants';
 
 dayjs.extend(duration);
 
@@ -14,11 +15,12 @@ export function formatTime(dateString) {
 export function formatDuration(startDate, endDate) {
   const start = dayjs(startDate);
   const end = dayjs(endDate);
-  const durаtion = end.diff(start);
+  const timeFrame = end.diff(start);
 
-  const days = Math.floor(durаtion / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((durаtion % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((durаtion % (1000 * 60 * 60)) / (1000 * 60));
+  const days = Math.floor(timeFrame / MILLISECONDS_IN_A_DAY);
+  const hours = Math.floor((timeFrame % MILLISECONDS_IN_A_DAY) / MILLISECONDS_IN_AN_HOUR);
+  const minutes = Math.floor((timeFrame % MILLISECONDS_IN_AN_HOUR) / MILLISECONDS_IN_A_MINUTE);
+
 
   if (days > 0) {
     return `${days}D ${hours.toString().padStart(2, '0')}H ${minutes.toString().padStart(2, '0')}M`;

@@ -47,11 +47,11 @@ export default class SortPresenter {
   }
 
   sortActions = {
-    [Sort.DAY]: this.createSortAction('day', (a, b) => new Date(a.dateFrom) - new Date(b.dateFrom)),
-    [Sort.TIME]: this.createSortAction('time', (a, b) =>
-      ((new Date(b.dateTo) - new Date(b.dateFrom)) - new Date(a.dateTo) - new Date(a.dateFrom))
+    [Sort.DAY]: this.createSortAction('day', (previousPoint, nextPoint) => new Date(previousPoint.dateFrom) - new Date(nextPoint.dateFrom)),
+    [Sort.TIME]: this.createSortAction('time', (previousPoint, nextPoint) =>
+      ((new Date(nextPoint.dateTo) - new Date(nextPoint.dateFrom)) - (new Date(previousPoint.dateTo) - new Date(previousPoint.dateFrom)))
     ),
-    [Sort.PRICE]: this.createSortAction('price', (a, b) => b.basePrice - a.basePrice)
+    [Sort.PRICE]: this.createSortAction('price', (previousPoint, nextPoint) => nextPoint.basePrice - previousPoint.basePrice)
   };
 
   #onSortClickHandler = (evt) => {

@@ -4,7 +4,7 @@ import {adaptToClient} from '../utils/adapt-to-client.js';
 export default class MainState extends Observable {
   initialStateOfPoints = null;
   currentStateOfPoints = [];
-  defaultSortedState = [];
+  defaultSortedPoints = [];
   #pointsApiService = null;
 
   constructor(pointsApiService) {
